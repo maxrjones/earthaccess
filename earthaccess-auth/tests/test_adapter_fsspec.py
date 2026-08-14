@@ -6,7 +6,9 @@ fsspec = pytest.importorskip("fsspec")
 
 
 def test_fsspec_session_carries_bearer_token_and_no_ambient_auth() -> None:
-    from earthaccess_auth.adapters.fsspec import get_fsspec_https_session
+    from earthaccess_auth.adapters.fsspec import (  # noqa: PLC0415
+        get_fsspec_https_session,
+    )
 
     auth = Auth()
     auth.token = {"access_token": "test-token-abc"}
