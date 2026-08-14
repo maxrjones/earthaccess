@@ -2,8 +2,7 @@
 
 This is `earthaccess.store.Store.get_fsspec_session` relocated so
 fsspec consumers (e.g. titiler-cmr's external-access path) need no other
-part of earthaccess. Complete as written; small enough to be real code in
-the sketch.
+part of earthaccess.
 """
 
 import fsspec
