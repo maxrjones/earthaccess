@@ -33,3 +33,6 @@ raw-options = { root = ".." }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/earthaccess_auth"]
+
+[tool.pytest.ini_options]
+filterwarnings = ["error::UserWarning"]

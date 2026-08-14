@@ -46,7 +46,7 @@ dependencies = [
   "requests >=2.26",
   "s3fs >=2025.2",
   "fsspec >=2025.2",
-  "tinynetrc >=1.3.1",
+  "earthaccess-auth",
   "tenacity >=8.0",
   "multimethod >=1.8",
   "importlib-resources >=6.3.2",
@@ -192,7 +192,7 @@ stubPath = "./stubs"
 
 [tool.ruff]
 line-length = 88
-src = ["earthaccess", "stubs", "tests"]
+src = ["earthaccess", "earthaccess-auth/src", "earthaccess-auth/tests", "stubs", "tests"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -231,6 +231,7 @@ combine-as-imports = true
 # Allow `print` and `pprint` in notebooks
 "*.ipynb" = ["T201", "T203", "N803", "RET504", "ERA001", "PLR2004", "PD002", "PD010", "PD011", "EM", "ARG001", "BLE001", "FBT","TRY003"]
 "tests/**/*.py" = ["PLR2004", "FBT", "INP001", "SLF001", "S101", "S108", "S301", "S603", "S607"]
+"earthaccess-auth/tests/**/*.py" = ["PLR2004", "FBT", "INP001", "SLF001", "S101", "S108", "S301", "S603", "S607"]
 "scripts/**/*.py" = ["INP001"]
 
 [tool.ruff.lint.pydocstyle]
@@ -270,3 +271,9 @@ replace = 'date-released: "{now:%Y-%m-%d}"'
 [tool.codespell]
 skip = 'uv.lock,*.ipynb,*.yml,*.yaml,./tests'
 ignore-words = ".codespellignore"
+
+[tool.uv.workspace]
+members = ["earthaccess-auth"]
+
+[tool.uv.sources]
+earthaccess-auth = { workspace = true }
