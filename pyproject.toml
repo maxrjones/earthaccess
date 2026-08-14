@@ -98,6 +98,7 @@ dev = [
 test = [
   "zarr >=3.1.1",
   "numpy >=1.26.4",
+  "obstore >=0.9",
   "mypy >=1.11.2",
   "pytest >=8.3",
   "pytest-cov >=5.0",

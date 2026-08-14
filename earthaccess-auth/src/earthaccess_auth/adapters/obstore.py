@@ -26,10 +26,15 @@ def s3_credential_provider(
 
     Feeds the Auth token to the provider so consumers do not configure EDL
     twice; the endpoint comes from the DAAC registry (see daac.py).
+
+    Verified against obstore 0.9.2: `NasaEarthdataCredentialProvider.__init__`
+    takes the credentials URL positionally plus a keyword-only `auth` (a
+    bearer token string, a `(username, password)` tuple, or `None`) — there
+    is no `token=` keyword, so the EDL access token is passed as `auth=`.
     """
     return NasaEarthdataCredentialProvider(
         credentials_endpoint,
-        token=auth.token["access_token"],
+        auth=auth.token["access_token"],
     )
 
 
@@ -40,7 +45,10 @@ def http_client_options(auth: Auth) -> dict[str, Any]:
     headers — e.g. icechunk's `http_store(headers=...)` for virtual chunk
     containers (the titiler-multidim case).
 
-    SKETCH NOTE: verify the exact obstore client-option key for default
-    headers against the obstore version targeted.
+    Verified against obstore 0.9.2: `obstore.store.ClientConfig` (the
+    `client_options` type for `HTTPStore`) has a `default_headers: dict[str,
+    str] | dict[str, bytes]` key, matching the shape returned here.
     """
-    return {"default_headers": {"authorization": f"Bearer {auth.token['access_token']}"}}
+    return {
+        "default_headers": {"authorization": f"Bearer {auth.token['access_token']}"}
+    }
