@@ -42,8 +42,6 @@ def login(strategy: str = "all", persist: bool = False, system: System = PROD) -
     (environment, then netrc, then interactive), which on main lives in
     `earthaccess.api.login` rather than on Auth. Unlike earthaccess there is
     no module-level singleton — callers hold the returned Auth themselves.
-
-    Complete as written; small enough to be real code in the sketch.
     """
     auth = Auth()
 
