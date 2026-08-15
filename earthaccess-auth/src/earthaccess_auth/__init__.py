@@ -20,10 +20,10 @@ from earthaccess_auth.exceptions import (
 from earthaccess_auth.system import PROD, UAT, System
 
 __all__ = [
-    "Auth",
     "DAACS",
     "PROD",
     "UAT",
+    "Auth",
     "LoginAttemptFailure",
     "LoginStrategyUnavailable",
     "SessionWithHeaderRedirection",
@@ -35,7 +35,11 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-def login(strategy: str = "all", persist: bool = False, system: System = PROD) -> Auth:
+def login(
+    strategy: str = "all",
+    persist: bool = False,  # noqa: FBT001, FBT002
+    system: System = PROD,
+) -> Auth:
     """Authenticate with EDL and return an Auth instance.
 
     Mirrors `earthaccess.login`, including the `"all"` fallback chain

@@ -162,8 +162,8 @@ filterwarnings = ["error::UserWarning"]
 
 [tool.mypy]
 python_version = "3.12"
-files = ["earthaccess", "tests"]
-mypy_path = ["earthaccess", "tests", "stubs"]
+files = ["earthaccess", "earthaccess-auth/src", "tests"]
+mypy_path = ["earthaccess", "earthaccess-auth/src", "tests", "stubs"]
 disallow_untyped_defs = true
 # TODO: incrementally work towards strict mode (currently too many errors)
 # strict = true

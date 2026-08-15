@@ -1,4 +1,4 @@
-# earthaccess-auth (proposal sketch)
+# earthaccess-auth (proof of concept)
 
 A minimal-dependency distribution containing only the NASA Earthdata Login (EDL) authentication core of earthaccess: login strategies, token lifecycle, per-DAAC S3 credential exchange, and the redirect-safe requests session. Integrations with fsspec and obstore are optional extras, so auth-only consumers install none of the search/download stack.
 
@@ -11,7 +11,7 @@ Several downstream services need EDL auth and nothing else from earthaccess. Two
 
 obstore has independently grown `obstore.auth.earthdata` (EDL to temporary S3 credential exchange, sync and async, with refresh). Without a shared auth core, EDL logic now lives in at least two places and drifts. This package is the proposed single home; the obstore extra bridges to (not duplicates) obstore's provider.
 
-## What moves, what stays
+## What moved, what stayed
 
 Moved into `earthaccess_auth` essentially verbatim (~630 lines total, runtime deps only `requests`, `tinynetrc`, and `typing_extensions`):
 
@@ -29,7 +29,7 @@ New, thin, behind extras:
 - `earthaccess_auth.adapters.fsspec` — `get_fsspec_https_session(auth)`, the bearer-token `HTTPFileSystem` currently built in `earthaccess/store.py` (including the `trust_env: False` requirement).
 - `earthaccess_auth.adapters.obstore` — re-exports `obstore.auth.earthdata.NasaEarthdataCredentialProvider` for S3 direct access, and adds `http_client_options(auth)` returning default headers for obstore HTTP stores (and any other consumer that just needs headers, e.g. icechunk `http_store`).
 
-Stays in earthaccess: everything else. `earthaccess/auth.py`, `system.py`, and `daac.py` become re-export shims, `earthaccess/exceptions.py` re-exports the two login exceptions, and earthaccess gains a dependency on `earthaccess-auth`, so no import path breaks and there is exactly one implementation. The earthaccess-side plan — shims, dependency edits, test split, and the two-distribution publish workflow — is in [MIGRATION.md](MIGRATION.md).
+Stayed in earthaccess: everything else. `earthaccess/auth.py`, `system.py`, and `daac.py` are now re-export shims, `earthaccess/exceptions.py` re-exports the two login exceptions, and earthaccess depends on `earthaccess-auth`, so no import path broke and there is exactly one implementation. The earthaccess-side plan — shims, dependency edits, test split, and the two-distribution publish workflow — is in [MIGRATION.md](MIGRATION.md).
 
 ## Install matrix
 

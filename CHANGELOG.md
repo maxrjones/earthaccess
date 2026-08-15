@@ -17,6 +17,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   first one, so multi-file granules no longer drop their other files.
   ([#1373](https://github.com/earthaccess-dev/earthaccess/pull/1373))
 
+### Changed
+
+- Extracted the EDL authentication core (Auth, DAAC registry, systems, login
+  exceptions) into a new `earthaccess-auth` distribution; `earthaccess`
+  re-exports these names from their previous locations, so no import paths
+  change. ([#XXXX](https://github.com/nsidc/earthaccess/pull/XXXX))
+
 ## [v0.18.0] - 2026-05-12
 
 - Allow for granule search for collection without SpatialExtent information ([@lsterzinger](https://github.com/lsterzinger))

@@ -16,6 +16,7 @@ def get_fsspec_https_session(auth: Auth) -> fsspec.AbstractFileSystem:
     trust_env must stay False: if aiohttp also picks up ambient auth from the
     environment while a bearer token is present, EDL rejects the request.
     """
+    assert auth.token is not None, "auth must be authenticated before use"  # noqa: S101
     token = auth.token["access_token"]
     client_kwargs = {
         "headers": {"Authorization": f"Bearer {token}"},

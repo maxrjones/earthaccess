@@ -32,6 +32,7 @@ def s3_credential_provider(
     bearer token string, a `(username, password)` tuple, or `None`) — there
     is no `token=` keyword, so the EDL access token is passed as `auth=`.
     """
+    assert auth.token is not None, "auth must be authenticated before use"  # noqa: S101
     return NasaEarthdataCredentialProvider(
         credentials_endpoint,
         auth=auth.token["access_token"],
@@ -49,6 +50,7 @@ def http_client_options(auth: Auth) -> dict[str, Any]:
     `client_options` type for `HTTPStore`) has a `default_headers: dict[str,
     str] | dict[str, bytes]` key, matching the shape returned here.
     """
+    assert auth.token is not None, "auth must be authenticated before use"  # noqa: S101
     return {
         "default_headers": {"authorization": f"Bearer {auth.token['access_token']}"}
     }

@@ -39,7 +39,9 @@ def test_login_single_strategy_does_not_fall_through(monkeypatch):
 
 def test_login_all_uses_environment_token(monkeypatch):
     monkeypatch.setenv("EARTHDATA_TOKEN", "token-123")
-    with mock.patch.object(Auth, "_netrc", side_effect=AssertionError("should not reach netrc")):
+    with mock.patch.object(
+        Auth, "_netrc", side_effect=AssertionError("should not reach netrc")
+    ):
         auth = earthaccess_auth.login(strategy="all")
     assert auth.authenticated
     assert auth.token == {"access_token": "token-123"}

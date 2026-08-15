@@ -9,8 +9,8 @@ from earthaccess_auth.daac import (
 )
 
 __all__ = [
-    "DAAC_TEST_URLS",
     "DAACS",
+    "DAAC_TEST_URLS",
     "DAACConfig",
     "find_provider",
     "find_provider_by_shortname",

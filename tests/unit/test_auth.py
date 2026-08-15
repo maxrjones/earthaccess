@@ -9,6 +9,7 @@ import earthaccess.auth
 import earthaccess.daac
 import earthaccess.exceptions
 import earthaccess.system
+
 import earthaccess_auth
 import earthaccess_auth.exceptions
 

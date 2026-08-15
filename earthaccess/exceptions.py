@@ -26,3 +26,12 @@ class EulaNotAccepted(DownloadFailure):
     This should be raised when a user attempts to access data that requires
     EULA acceptance, but they have not accepted the EULA.
     """
+
+
+__all__ = [
+    "DownloadFailure",
+    "EulaNotAccepted",
+    "LoginAttemptFailure",
+    "LoginStrategyUnavailable",
+    "ServiceOutage",
+]
