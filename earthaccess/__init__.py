@@ -70,7 +70,7 @@ except ImportError:
 
     __version__ = get_version("earthaccess")
 
-_auth = Auth()
+_auth = Auth(user_agent=f"earthaccess v{__version__}")
 _store: Store | None = None
 _lock = threading.Lock()
 
