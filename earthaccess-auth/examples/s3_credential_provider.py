@@ -4,7 +4,7 @@
 #
 # [tool.uv.sources]
 # # TODO: switch to a released earthaccess-auth once this branch merges
-# earthaccess-auth = { git = "https://github.com/maxrjones/earthaccess", subdirectory = "earthaccess-auth", branch = "claude/earthaccess-auth-poc" }
+# earthaccess-auth = { git = "https://github.com/maxrjones/earthaccess", subdirectory = "earthaccess-auth", branch = "poc/earthaccess-auth" }
 # ///
 """Build an obstore credential provider that refreshes S3 credentials itself.
 
