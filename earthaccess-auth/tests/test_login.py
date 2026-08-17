@@ -37,6 +37,33 @@ def test_login_single_strategy_does_not_fall_through(monkeypatch):
     assert calls == ["netrc"]
 
 
+def test_login_all_falls_through_to_interactive(monkeypatch):
+    calls = []
+
+    def fake_login(self, strategy="netrc", **_kwargs):
+        calls.append(strategy)
+        if strategy in ("environment", "netrc"):
+            msg = f"{strategy} unavailable"
+            raise LoginStrategyUnavailable(msg)
+        self.authenticated = True
+        return self
+
+    monkeypatch.setattr(Auth, "login", fake_login)
+    auth = earthaccess_auth.login(strategy="all")
+    assert calls == ["environment", "netrc", "interactive"]
+    assert auth.authenticated
+
+
+def test_login_all_exhausted_returns_unauthenticated(monkeypatch):
+    def fake_login(_self, strategy="netrc", **_kwargs):
+        msg = f"{strategy} unavailable"
+        raise LoginStrategyUnavailable(msg)
+
+    monkeypatch.setattr(Auth, "login", fake_login)
+    auth = earthaccess_auth.login(strategy="all")
+    assert not auth.authenticated
+
+
 def test_login_all_uses_environment_token(monkeypatch):
     monkeypatch.setenv("EARTHDATA_TOKEN", "token-123")
     with mock.patch.object(
