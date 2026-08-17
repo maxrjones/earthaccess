@@ -39,9 +39,8 @@ def test_s3_credential_provider_wires_token_and_endpoint():
     provider = s3_credential_provider(_authed(), endpoint)
     assert isinstance(provider, NasaEarthdataCredentialProvider)
 
-    # Exercise the provider's public __call__ surface (rather than reaching
-    # into its private attributes) to prove the token and endpoint are wired
-    # correctly, without depending on obstore's internal field names.
+    # Drives the public __call__ surface, not private attrs, so this survives
+    # an obstore attribute rename.
     credentials = provider()
 
     assert len(responses.calls) == 1
