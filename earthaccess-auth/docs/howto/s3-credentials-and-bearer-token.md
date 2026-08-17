@@ -3,7 +3,10 @@
 `earthaccess-auth` gives you three things once you're logged in: a bearer
 token, temporary AWS S3 credentials, and (via the `obstore` extra) a
 credential *provider* that fetches and refreshes those credentials for you.
-Which one you want depends on what you're handing it to.
+Which one you want depends on what you're handing it to. Each of these is
+also a standalone, runnable script in
+[`examples/`](https://github.com/earthaccess-dev/earthaccess/tree/main/earthaccess-auth/examples)
+declaring its own dependencies ([PEP 723](https://peps.python.org/pep-0723/)).
 
 ## The raw bearer token
 
@@ -12,23 +15,18 @@ into a header yourself. This is the pattern a Lambda-deployed consumer with
 a tight dependency budget would use.
 
 ```python
-import earthaccess_auth
-
-auth = earthaccess_auth.login(strategy="environment")
-token = auth.token["access_token"]
+--8<-- "examples/bearer_token.py"
 ```
 
 ## Header dict for HTTP-based stores
 
 For anything that accepts a plain `headers` dict (obstore HTTP stores,
-icechunk's `http_store(headers=...)` for virtual chunk containers) use
+obspec-utils's `AiohttpStore` — see [Read a dataset with xarray](read-a-dataset.md)
+— or icechunk's `http_store(headers=...)` for virtual chunk containers) use
 `http_client_options`:
 
 ```python
-from earthaccess_auth.adapters.obstore import http_client_options
-
-options = http_client_options(auth)
-# {"default_headers": {"authorization": "Bearer <token>"}}
+--8<-- "examples/http_headers.py"
 ```
 
 ## Temporary AWS S3 credentials
@@ -38,8 +36,7 @@ For anything that wants `key`/`secret`/`token` (or `aws_access_key_id`
 `s3fs`, or the AWS CLI:
 
 ```python
-creds = auth.get_s3_credentials(daac="NSIDC")
-# {"accessKeyId": "...", "secretAccessKey": "...", "sessionToken": "...", "expiration": "..."}
+--8<-- "examples/s3_credentials.py"
 ```
 
 You can look credentials up by DAAC short name (`daac="NSIDC"`), by cloud
@@ -51,20 +48,14 @@ don't cache them longer than that.
 
 ## An obstore credential *provider*
 
-If you're handing credentials to an `obstore.store.S3Store` (or the
-`obstore.fsspec.FsspecStore` wrapper, see
+If you're handing credentials to an `obstore.store.S3Store` (see
 [Read a dataset with xarray](read-a-dataset.md)), pass a *provider* instead
 of a one-shot credentials dict. The provider re-calls `get_s3_credentials()`
 on its own once the current credentials near expiry, so a long-running job
 doesn't need its own refresh loop:
 
 ```python
-from earthaccess_auth.adapters.obstore import s3_credential_provider
-
-credential_provider = s3_credential_provider(
-    auth,
-    credentials_endpoint="https://data.nsidc.earthdatacloud.nasa.gov/s3credentials",
-)
+--8<-- "examples/s3_credential_provider.py"
 ```
 
 `credentials_endpoint` is a DAAC's `s3credentials` URL: the

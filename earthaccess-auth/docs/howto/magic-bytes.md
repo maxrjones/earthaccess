@@ -2,9 +2,9 @@
 
 NASA Earthdata granule filenames don't always advertise their format
 reliably, and you don't want to download a multi-gigabyte file just to find
-out it's HDF5 instead of NetCDF classic. Both backends let you fetch a byte
-range without downloading the whole object, so you can read just the first
-few bytes and check them against known file signatures:
+out it's HDF5 instead of NetCDF classic. A byte-range request fetches just
+the first few bytes, so you can check them against known file signatures
+without downloading the whole object:
 
 | Format | Magic bytes (hex) | Magic bytes (ASCII) |
 | --- | --- | --- |
@@ -20,50 +20,10 @@ files), not a single self-describing binary blob. "Is this Zarr?" means
 checking whether a `zarr.json` or `.zarray` key exists at that prefix, not
 sniffing bytes.
 
-=== "obstore"
+```python
+--8<-- "examples/magic_bytes.py"
+```
 
-    ```python
-    import obstore
-    from obstore.store import S3Store
-
-    from earthaccess_auth.adapters.obstore import s3_credential_provider
-
-    credential_provider = s3_credential_provider(
-        auth,
-        credentials_endpoint="https://data.nsidc.earthdatacloud.nasa.gov/s3credentials",
-    )
-    store = S3Store(
-        "nsidc-cumulus-prod-protected",
-        region="us-west-2",
-        credential_provider=credential_provider,
-    )
-
-    path = "ATLAS/ATL03/006/2020/01/01/ATL03_20200101T000106_00650601_006_01.h5"
-    header = bytes(obstore.get_range(store, path, start=0, end=8))
-
-    if header == b"\x89HDF\r\n\x1a\n":
-        print("HDF5 (or NetCDF-4)")
-    elif header[:3] == b"CDF":
-        print(f"NetCDF classic, version {header[3]}")
-    else:
-        print(f"unrecognized: {header!r}")
-    ```
-
-=== "fsspec"
-
-    ```python
-    with fs.open(url, "rb") as f:
-        header = f.read(8)
-
-    if header == b"\x89HDF\r\n\x1a\n":
-        print("HDF5 (or NetCDF-4)")
-    elif header[:3] == b"CDF":
-        print(f"NetCDF classic, version {header[3]}")
-    else:
-        print(f"unrecognized: {header!r}")
-    ```
-
-    `fs` can be either the HTTPS session from
-    [`get_fsspec_https_session`](../reference/api.md) or an `s3fs.S3FileSystem`
-    built from `get_s3_credentials()`. Either way, `f.read(8)` only pulls the
-    first 8 bytes over the wire, thanks to fsspec's range-request support.
+This script is [`examples/magic_bytes.py`](https://github.com/earthaccess-dev/earthaccess/tree/main/earthaccess-auth/examples/magic_bytes.py),
+and declares its own dependencies ([PEP 723](https://peps.python.org/pep-0723/)),
+so `uv run examples/magic_bytes.py` works standalone.
