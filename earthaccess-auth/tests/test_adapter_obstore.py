@@ -1,4 +1,5 @@
 import pytest
+import responses
 
 from earthaccess_auth import Auth
 
@@ -12,7 +13,8 @@ def _authed() -> Auth:
     return auth
 
 
-def test_s3_credential_provider_construction():
+@responses.activate
+def test_s3_credential_provider_wires_token_and_endpoint():
     from obstore.auth.earthdata import (  # noqa: PLC0415
         NasaEarthdataCredentialProvider,
     )
@@ -21,17 +23,34 @@ def test_s3_credential_provider_construction():
         s3_credential_provider,
     )
 
-    provider = s3_credential_provider(
-        _authed(), "https://data.nsidc.earthdatacloud.nasa.gov/s3credentials"
+    endpoint = "https://data.nsidc.earthdatacloud.nasa.gov/s3credentials"
+    responses.add(
+        responses.GET,
+        endpoint,
+        json={
+            "accessKeyId": "AKIDEXAMPLE",
+            "secretAccessKey": "secret",
+            "sessionToken": "session-token",
+            "expiration": "2030-01-01T00:00:00+00:00",
+        },
+        status=200,
     )
+
+    provider = s3_credential_provider(_authed(), endpoint)
     assert isinstance(provider, NasaEarthdataCredentialProvider)
-    # __init__ only stores config; it performs no network I/O (that happens
-    # lazily in __call__), so it is safe to assert the wiring directly.
-    assert provider._auth == "test-token-abc"
-    assert (
-        provider._credentials_url
-        == "https://data.nsidc.earthdatacloud.nasa.gov/s3credentials"
-    )
+
+    # Exercise the provider's public __call__ surface (rather than reaching
+    # into its private attributes) to prove the token and endpoint are wired
+    # correctly, without depending on obstore's internal field names.
+    credentials = provider()
+
+    assert len(responses.calls) == 1
+    request = responses.calls[0].request
+    assert request.url.startswith(endpoint)
+    assert request.headers["Authorization"] == "Bearer test-token-abc"
+    assert credentials["access_key_id"] == "AKIDEXAMPLE"
+    assert credentials["secret_access_key"] == "secret"  # noqa: S105
+    assert credentials["token"] == "session-token"  # noqa: S105
 
 
 def test_http_client_options_accepted_by_obstore():
@@ -47,3 +66,21 @@ def test_http_client_options_accepted_by_obstore():
         "https://example.com", client_options=options
     )
     assert store is not None
+
+
+def test_s3_credential_provider_rejects_unauthenticated_auth():
+    from earthaccess_auth.adapters.obstore import (  # noqa: PLC0415
+        s3_credential_provider,
+    )
+
+    with pytest.raises(ValueError, match="authenticated"):
+        s3_credential_provider(Auth(), "https://example.com/s3credentials")
+
+
+def test_http_client_options_rejects_unauthenticated_auth():
+    from earthaccess_auth.adapters.obstore import (  # noqa: PLC0415
+        http_client_options,
+    )
+
+    with pytest.raises(ValueError, match="authenticated"):
+        http_client_options(Auth())

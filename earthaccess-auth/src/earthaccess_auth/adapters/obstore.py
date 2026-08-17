@@ -31,8 +31,13 @@ def s3_credential_provider(
     takes the credentials URL positionally plus a keyword-only `auth` (a
     bearer token string, a `(username, password)` tuple, or `None`) — there
     is no `token=` keyword, so the EDL access token is passed as `auth=`.
+
+    Raises:
+        ValueError: If `auth` has not been authenticated (`auth.token is None`).
     """
-    assert auth.token is not None, "auth must be authenticated before use"  # noqa: S101
+    if auth.token is None:
+        msg = "auth must be authenticated before use"
+        raise ValueError(msg)
     return NasaEarthdataCredentialProvider(
         credentials_endpoint,
         auth=auth.token["access_token"],
@@ -49,8 +54,13 @@ def http_client_options(auth: Auth) -> dict[str, Any]:
     Verified against obstore 0.9.2: `obstore.store.ClientConfig` (the
     `client_options` type for `HTTPStore`) has a `default_headers: dict[str,
     str] | dict[str, bytes]` key, matching the shape returned here.
+
+    Raises:
+        ValueError: If `auth` has not been authenticated (`auth.token is None`).
     """
-    assert auth.token is not None, "auth must be authenticated before use"  # noqa: S101
+    if auth.token is None:
+        msg = "auth must be authenticated before use"
+        raise ValueError(msg)
     return {
         "default_headers": {"authorization": f"Bearer {auth.token['access_token']}"}
     }
