@@ -27,6 +27,7 @@ from tenacity import (
 from typing_extensions import deprecated
 
 import earthaccess
+from earthaccess_auth.adapters.fsspec import get_fsspec_https_session
 
 from .auth import Auth
 from .daac import DAAC_TEST_URLS, find_provider
@@ -431,14 +432,7 @@ class Store:
         Returns:
             fsspec HTTPFileSystem (aiohttp client session)
         """
-        token = self.auth.token["access_token"]
-        client_kwargs = {
-            "headers": {"Authorization": f"Bearer {token}"},
-            # This is important! If we trust the env and send a bearer token,
-            # auth will fail!
-            "trust_env": False,
-        }
-        return fsspec.filesystem("https", client_kwargs=client_kwargs)
+        return get_fsspec_https_session(self.auth)
 
     def get_requests_session(self) -> requests.Session:
         """Returns a requests HTTPS session with bearer tokens that are used by CMR.
