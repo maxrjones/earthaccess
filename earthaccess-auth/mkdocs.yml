@@ -1,6 +1,6 @@
 site_name: earthaccess-auth
 site_description: NASA Earthdata Login (EDL) authentication core, standalone
-site_url: https://github.com/earthaccess-dev/earthaccess
+site_url: https://earthaccess-dev.github.io/earthaccess/
 
 # Fail on broken links
 strict: true

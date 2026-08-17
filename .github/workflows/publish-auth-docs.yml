@@ -1,0 +1,87 @@
+name: Publish earthaccess-auth docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "earthaccess-auth/docs/**"
+      - "earthaccess-auth/src/**"
+      - "earthaccess-auth/examples/**"
+      - "earthaccess-auth/mkdocs.yml"
+      - "earthaccess-auth/pyproject.toml"
+      - ".github/workflows/publish-auth-docs.yml"
+  pull_request:
+    paths:
+      - "earthaccess-auth/docs/**"
+      - "earthaccess-auth/src/**"
+      - "earthaccess-auth/examples/**"
+      - "earthaccess-auth/mkdocs.yml"
+      - "earthaccess-auth/pyproject.toml"
+      - ".github/workflows/publish-auth-docs.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-auth-docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test earthaccess-auth docs build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+          cache-suffix: auth-docs
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Build docs (strict)
+        run: uv run --directory earthaccess-auth --group docs mkdocs build --strict
+
+  deploy:
+    name: Deploy earthaccess-auth docs
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: github-pages
+    permissions:
+      contents: write # mkdocs gh-deploy pushes the built site to gh-pages
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+          cache-suffix: auth-docs
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Deploy docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          uv run --directory earthaccess-auth --group docs mkdocs gh-deploy --force
