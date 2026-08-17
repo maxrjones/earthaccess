@@ -27,6 +27,17 @@ obstore = [
   "obstore >=0.9",
 ]
 
+[dependency-groups]
+docs = [
+  "mkdocs >=1.2,!=1.6.0,<2.0",
+  "mkdocs-material >=9.7.1,<10.0",
+  "mkdocstrings[python] >=0.19.0",
+  "pymdown-extensions >=9.2",
+  "pygments >=2.11.1",
+  # so mkdocstrings can import adapters.fsspec / adapters.obstore for their docstrings
+  "earthaccess-auth[fsspec,obstore]",
+]
+
 [tool.hatch.version]
 source = "vcs"
 raw-options = { root = ".." }

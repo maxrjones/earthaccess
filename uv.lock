@@ -1165,6 +1165,16 @@ obstore = [
     { name = "obstore" },
 ]
 
+[package.dev-dependencies]
+docs = [
+    { name = "earthaccess-auth", extra = ["fsspec", "obstore"] },
+    { name = "mkdocs" },
+    { name = "mkdocs-material" },
+    { name = "mkdocstrings", extra = ["python"] },
+    { name = "pygments" },
+    { name = "pymdown-extensions" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", marker = "extra == 'fsspec'", specifier = ">=3.8" },
@@ -1175,6 +1185,16 @@ requires-dist = [
     { name = "typing-extensions", specifier = ">=4.5" },
 ]
 provides-extras = ["fsspec", "obstore"]
+
+[package.metadata.requires-dev]
+docs = [
+    { name = "earthaccess-auth", extras = ["fsspec", "obstore"], editable = "earthaccess-auth" },
+    { name = "mkdocs", specifier = ">=1.2,!=1.6.0,<2.0" },
+    { name = "mkdocs-material", specifier = ">=9.7.1,<10.0" },
+    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.19.0" },
+    { name = "pygments", specifier = ">=2.11.1" },
+    { name = "pymdown-extensions", specifier = ">=9.2" },
+]
 
 [[package]]
 name = "editorconfig"
