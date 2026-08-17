@@ -234,6 +234,7 @@ combine-as-imports = true
 "tests/**/*.py" = ["PLR2004", "FBT", "INP001", "SLF001", "S101", "S108", "S301", "S603", "S607"]
 "earthaccess-auth/tests/**/*.py" = ["PLR2004", "FBT", "INP001", "SLF001", "S101", "S108", "S301", "S603", "S607"]
 "scripts/**/*.py" = ["INP001"]
+"earthaccess-auth/examples/**/*.py" = ["INP001", "T201"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
