@@ -1,13 +1,11 @@
 # Read a dataset with xarray
 
-Every NASA Earthdata granule ends up served from one of two places: a plain
+Every NASA Earthdata granule is served from one of two places: a plain
 HTTPS URL (on-prem DAAC archives), or an S3 bucket in `us-west-2` (NASA
-Earthdata Cloud, from an EC2/Lambda/EMR client running in that same region).
-Once you're authenticated, `earthaccess-auth` gets you a session or a
-credential provider for either — how you hand that to `xarray` depends on
-which optional backend you've installed.
-
-Pick a tab.
+Earthdata Cloud, for clients running in that same region). Once you're
+authenticated, `earthaccess-auth` gets you a session or a credential
+provider for either. How you hand that to `xarray` depends on which
+optional backend you've installed.
 
 === "obstore (S3)"
 
@@ -64,11 +62,11 @@ Pick a tab.
 
 === "fsspec (S3)"
 
-    Requires `pip install earthaccess-auth[fsspec] s3fs` — `earthaccess-auth`
-    doesn't ship an S3 adapter for `fsspec` itself (that's what the `obstore`
-    extra is for), but `get_s3_credentials()` returns a plain temporary AWS
-    credential dict that `s3fs` (and anything else `boto3`-shaped) accepts
-    directly.
+    Requires `pip install earthaccess-auth[fsspec] s3fs`. `earthaccess-auth`
+    doesn't ship an S3 adapter for `fsspec` itself; that's what the `obstore`
+    extra is for. But `get_s3_credentials()` returns a plain temporary AWS
+    credential dict, and `s3fs` (like anything else `boto3`-shaped) accepts
+    that directly.
 
     ```python
     import earthaccess_auth

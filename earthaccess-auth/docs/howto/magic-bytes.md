@@ -14,11 +14,11 @@ few bytes and check them against known file signatures:
 | GeoTIFF (little-endian) | `49 49 2a 00` | `II*\x00` |
 | GeoTIFF (big-endian) | `4d 4d 00 2a` | `MM\x00*` |
 
-Zarr has no comparable magic bytes — a Zarr store is a directory (or
+Zarr has no comparable magic bytes. A Zarr store is a directory (or
 prefix) of many small objects (`zarr.json`/`.zarray`, `.zmetadata`, chunk
-files), not a single self-describing binary blob, so "is this Zarr?" means
-checking whether a `zarr.json` or `.zarray` key exists at that prefix rather
-than sniffing bytes.
+files), not a single self-describing binary blob. "Is this Zarr?" means
+checking whether a `zarr.json` or `.zarray` key exists at that prefix, not
+sniffing bytes.
 
 === "obstore"
 
@@ -65,5 +65,5 @@ than sniffing bytes.
 
     `fs` can be either the HTTPS session from
     [`get_fsspec_https_session`](../reference/api.md) or an `s3fs.S3FileSystem`
-    built from `get_s3_credentials()` — `f.read(8)` only pulls the first 8
-    bytes over the wire either way, thanks to fsspec's range-request support.
+    built from `get_s3_credentials()`. Either way, `f.read(8)` only pulls the
+    first 8 bytes over the wire, thanks to fsspec's range-request support.

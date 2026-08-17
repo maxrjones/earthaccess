@@ -7,9 +7,9 @@ Which one you want depends on what you're handing it to.
 
 ## The raw bearer token
 
-The minimal case: no fsspec, no obstore, just the token string — inject it
-into a header somewhere yourself. This is the pattern a Lambda-deployed
-consumer with a tight dependency budget (no fsspec, no obstore) would use.
+The minimal case: no fsspec, no obstore, just the token string. Inject it
+into a header yourself. This is the pattern a Lambda-deployed consumer with
+a tight dependency budget would use.
 
 ```python
 import earthaccess_auth
@@ -20,8 +20,8 @@ token = auth.token["access_token"]
 
 ## Header dict for HTTP-based stores
 
-For anything that accepts a plain `headers` dict — obstore HTTP stores,
-icechunk's `http_store(headers=...)` for virtual chunk containers — use
+For anything that accepts a plain `headers` dict (obstore HTTP stores,
+icechunk's `http_store(headers=...)` for virtual chunk containers) use
 `http_client_options`:
 
 ```python
@@ -34,8 +34,8 @@ options = http_client_options(auth)
 ## Temporary AWS S3 credentials
 
 For anything that wants `key`/`secret`/`token` (or `aws_access_key_id`
-/`aws_secret_access_key`/`aws_session_token`) directly — `boto3`, `s3fs`,
-`awscli`:
+/`aws_secret_access_key`/`aws_session_token`) directly, such as `boto3`,
+`s3fs`, or the AWS CLI:
 
 ```python
 creds = auth.get_s3_credentials(daac="NSIDC")
@@ -46,17 +46,17 @@ You can look credentials up by DAAC short name (`daac="NSIDC"`), by cloud
 provider code (`provider="NSIDC_CPRD"`, from
 [`find_provider`](../reference/api.md)), or by a raw `s3credentials`
 endpoint URL (`endpoint=...`) if you already have one. These credentials
-are scoped to that DAAC's cloud bucket(s) and expire in about an hour —
+are scoped to that DAAC's cloud bucket(s) and expire in about an hour, so
 don't cache them longer than that.
 
 ## An obstore credential *provider*
 
 If you're handing credentials to an `obstore.store.S3Store` (or the
-`obstore.fsspec.FsspecStore` wrapper — see
-[Read a dataset with xarray](read-a-dataset.md)), pass a *provider*, not a
-one-shot credentials dict. The provider re-calls `get_s3_credentials()`
-automatically once the current credentials near expiry, so a long-running
-job doesn't need its own refresh loop:
+`obstore.fsspec.FsspecStore` wrapper, see
+[Read a dataset with xarray](read-a-dataset.md)), pass a *provider* instead
+of a one-shot credentials dict. The provider re-calls `get_s3_credentials()`
+on its own once the current credentials near expiry, so a long-running job
+doesn't need its own refresh loop:
 
 ```python
 from earthaccess_auth.adapters.obstore import s3_credential_provider
@@ -67,6 +67,6 @@ credential_provider = s3_credential_provider(
 )
 ```
 
-`credentials_endpoint` is a DAAC's `s3credentials` URL — see the
+`credentials_endpoint` is a DAAC's `s3credentials` URL: the
 `"s3-credentials"` field on each entry in
 [`DAACS`](../reference/api.md#earthaccess_auth.daac.DAACS).

@@ -27,8 +27,8 @@ credentials work at all.
     ```
 
     `obstore.list()` returns a lazily-paginated stream of `ObjectMeta` dicts
-    (`path`, `size`, `last_modified`, `e_tag`) — iterating it fetches pages as
-    needed rather than loading the whole prefix into memory up front.
+    (`path`, `size`, `last_modified`, `e_tag`). Iterating it fetches pages as
+    needed instead of loading the whole prefix into memory up front.
 
 === "fsspec (s3fs)"
 
@@ -50,5 +50,5 @@ credentials work at all.
     (non-recursive by default); use `fs.find()` if you need to walk
     subdirectories too.
 
-Both examples assume `auth = earthaccess_auth.login()` has already run — see
+Both examples assume `auth = earthaccess_auth.login()` has already run. See
 [Get S3 credentials and bearer tokens](s3-credentials-and-bearer-token.md).

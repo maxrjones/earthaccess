@@ -8,8 +8,8 @@ and [obstore](https://developmentseed.org/obstore/) are optional extras, so
 auth-only consumers don't install the rest of earthaccess's search/download
 stack.
 
-If you only need a bearer token or temporary S3 credentials — not CMR
-search — this package is likely all you need.
+If you only need a bearer token or temporary S3 credentials, not CMR search,
+this package is probably all you need.
 
 ## Install
 
@@ -34,9 +34,9 @@ need to.
 
 ## Where to go next
 
-- [Read a dataset with xarray](howto/read-a-dataset.md) — obstore, fsspec+HTTPS, and fsspec+S3, side by side
+- [Read a dataset with xarray](howto/read-a-dataset.md): obstore, fsspec+HTTPS, and fsspec+S3, side by side
 - [List the contents of an S3 bucket](howto/list-bucket-contents.md)
 - [Identify a file from its magic bytes](howto/magic-bytes.md)
 - [Get S3 credentials and bearer tokens](howto/s3-credentials-and-bearer-token.md)
-- [Choosing a backend](explanation/choosing-a-backend.md) — obstore vs. fsspec vs. raw S3
+- [Choosing a backend](explanation/choosing-a-backend.md): obstore vs. fsspec vs. raw S3
 - [API reference](reference/api.md)
