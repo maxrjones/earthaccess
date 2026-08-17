@@ -16,6 +16,6 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   the DAAC registry, systems (`PROD`/`UAT`), and the two login exceptions.
   Optional `fsspec` and `obstore` extras add an authenticated HTTPS session
   and an S3 credential provider, respectively.
-  ([#XXXX](https://github.com/earthaccess-dev/earthaccess/pull/XXXX))
+  ([#1423](https://github.com/earthaccess-dev/earthaccess/pull/1423))
 
 [Unreleased]: https://github.com/earthaccess-dev/earthaccess/compare/v0.18.0...HEAD

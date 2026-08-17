@@ -24,7 +24,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   `[fsspec]`/`[obstore]` extras for an authenticated HTTPS session or S3
   credential provider. See its own
   [changelog](earthaccess-auth/CHANGELOG.md).
-  ([#XXXX](https://github.com/earthaccess-dev/earthaccess/pull/XXXX))
+  ([#1423](https://github.com/earthaccess-dev/earthaccess/pull/1423))
 
 ### Changed
 
@@ -32,7 +32,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   exceptions) into the new `earthaccess-auth` distribution above;
   `earthaccess` re-exports these names from their previous locations, so no
   import paths change.
-  ([#XXXX](https://github.com/earthaccess-dev/earthaccess/pull/XXXX))
+  ([#1423](https://github.com/earthaccess-dev/earthaccess/pull/1423))
 
 ## [v0.18.0] - 2026-05-12
 
