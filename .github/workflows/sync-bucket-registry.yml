@@ -47,12 +47,8 @@ jobs:
       # bucket_registry.latest.json only changes when the live CMR sweep's
       # output differs from what's committed, so this naturally no-ops (no
       # PR opened) when there's no drift.
-      # TODO(security): pin to a commit SHA to match this repo's convention
-      # for third-party actions (see e.g. zizmor.yml, publish-auth-docs.yml).
-      # Left as a version tag because this sandbox has no network access to
-      # GitHub to resolve the current release SHA — resolve before merging.
       - name: Open a PR if the sweep changed
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           commit-message: "chore: update CMR bucket registry snapshot"
           title: "chore: CMR bucket registry drift detected"
