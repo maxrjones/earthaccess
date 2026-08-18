@@ -1054,7 +1054,7 @@ obspec-utils's <code>AiohttpStore</code> — see <a href="../read-a-dataset/">Re
 </code></pre></div>
 <p>You can look credentials up by DAAC short name (<code>daac="NSIDC"</code>), by cloud
 provider code (<code>provider="NSIDC_CPRD"</code>, from
-<a href="../../reference/api/"><code>find_provider</code></a>), or by a raw <code>s3credentials</code>
+<a href="../../reference/api/#earthaccess_auth.daac.find_provider"><code>find_provider</code></a>), or by a raw <code>s3credentials</code>
 endpoint URL (<code>endpoint=...</code>) if you already have one. These credentials
 are scoped to that DAAC's cloud bucket(s) and expire in about an hour, so
 don't cache them longer than that.</p>
@@ -1075,7 +1075,7 @@ doesn't need its own refresh loop:</p>
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="sd">&quot;&quot;&quot;Build an obstore credential provider that refreshes S3 credentials itself.</span>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
 <a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="sd">Hand this to obstore.store.S3Store (or obspec_utils&#39; readers, see</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="sd">read_a_dataset_s3.py) instead of a one-shot credentials dict, so a</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="sd">read_a_dataset_obstore.py) instead of a one-shot credentials dict, so a</span>
 <a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="sd">long-running job doesn&#39;t need its own refresh loop.</span>
 <a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="sd">&quot;&quot;&quot;</span>
 <a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>

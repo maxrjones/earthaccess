@@ -843,10 +843,18 @@ straight to S3 with <code>obstore</code>: fastest reads, automatic credential re
 <code>obspec_utils.stores.AiohttpStore</code> with the headers dict from
 <code>http_client_options</code>. Cross-region S3 reads are billed to the requester
 and slower than same-region reads.</p>
+<p>Already on <code>fsspec</code> and don't want obstore or obspec-utils in the mix?
+<code>get_fsspec_https_session()</code> builds an <code>fsspec.AbstractFileSystem</code>
+(<code>HTTPFileSystem</code>) straight from the bearer token — same use case as
+<code>AiohttpStore</code>, just the <code>[fsspec]</code> extra instead of <code>[obstore]</code>. See the
+<code>fsspec (HTTPS)</code> tab of
+<a href="../../howto/read-a-dataset/">Read a dataset with xarray</a>.</p>
 <p>Already on <code>s3fs</code>? <code>get_s3_credentials()</code> returns a plain temporary AWS
 credential dict that <code>s3fs.S3FileSystem</code> (like anything else <code>boto3</code>-shaped)
 accepts directly — no separate adapter needed, just no automatic refresh:
-re-call <code>get_s3_credentials()</code> yourself once credentials near expiry.</p>
+re-call <code>get_s3_credentials()</code> yourself once credentials near expiry. See
+the <code>s3fs</code> tab of
+<a href="../../howto/list-bucket-contents/">List the contents of an S3 bucket</a>.</p>
 <p>If you just need a token or headers and no file access at all, skip both.
 See <a href="../../howto/s3-credentials-and-bearer-token/">Get S3 credentials and bearer tokens</a>.</p>
 
