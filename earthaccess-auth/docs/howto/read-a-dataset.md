@@ -4,10 +4,10 @@ Every NASA Earthdata granule is served from one of two places: a plain
 HTTPS URL (on-prem DAAC archives), or an S3 bucket in `us-west-2` (NASA
 Earthdata Cloud, for clients running in that same region). Once you're
 authenticated, `earthaccess-auth` gets you a credential provider or a
-headers dict for either, and
+headers dict for either, and whichever file-like wrapper you pick —
 [obspec-utils](https://github.com/developmentseed/obspec-utils)'s
-`EagerStoreReader` wraps either backend with the same file-like interface,
-so the `xarray.open_dataset` call underneath doesn't change between them.
+`EagerStoreReader`, or plain `fsspec`/`s3fs` — the `xarray.open_dataset`
+call underneath doesn't change.
 
 === "obstore (S3)"
 
@@ -16,6 +16,17 @@ so the `xarray.open_dataset` call underneath doesn't change between them.
 
     ```python
     --8<-- "examples/read_a_dataset_s3.py"
+    ```
+
+=== "s3fs (S3)"
+
+    Already on `s3fs`/`fsspec` elsewhere? `earthaccess-auth`'s core (no
+    extras) is enough: `get_s3_credentials()` returns a plain temporary AWS
+    credential dict that `s3fs.S3FileSystem` accepts directly, no separate
+    adapter needed.
+
+    ```python
+    --8<-- "examples/read_a_dataset_fsspec_s3.py"
     ```
 
 === "obspec-utils (HTTPS)"
@@ -32,10 +43,21 @@ so the `xarray.open_dataset` call underneath doesn't change between them.
     --8<-- "examples/read_a_dataset_https.py"
     ```
 
-Both scripts live in
+=== "fsspec (HTTPS)"
+
+    Requires only the `fsspec` extra: `pip install earthaccess-auth[fsspec]`
+    — no obstore, no obspec-utils. Same use case as the obspec-utils tab
+    (on-prem granules, or cross-region reads), for when you're already on
+    fsspec elsewhere.
+
+    ```python
+    --8<-- "examples/read_a_dataset_fsspec_https.py"
+    ```
+
+All four scripts live in
 [`examples/`](https://github.com/earthaccess-dev/earthaccess/tree/main/earthaccess-auth/examples)
 and declare their own dependencies ([PEP 723](https://peps.python.org/pep-0723/)),
-so `uv run examples/read_a_dataset_s3.py` works standalone, no separate
+so e.g. `uv run examples/read_a_dataset_s3.py` works standalone, no separate
 install step required.
 
 !!! note "S3 credentials are DAAC-scoped and short-lived"
@@ -44,7 +66,9 @@ install step required.
     valid for one DAAC's cloud bucket(s), for about an hour. If you're reading
     granules from more than one DAAC, fetch credentials per DAAC; if a read
     fails with an auth error partway through a long-running job, get fresh
-    credentials rather than retrying with the ones you have.
+    credentials rather than retrying with the ones you have. `s3fs` and
+    `fsspec` don't refresh automatically either way — re-call
+    `get_s3_credentials()` yourself once credentials near expiry.
 
 See [Choosing a backend](../explanation/choosing-a-backend.md) for how to
-decide between these two.
+decide between these four.
