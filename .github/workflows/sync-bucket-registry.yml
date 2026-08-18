@@ -1,0 +1,77 @@
+name: Sync S3 bucket registry from CMR
+
+on:
+  schedule:
+    # Mondays at 06:00 UTC.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sweep CMR and diff against the vendored bucket registry
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # only the sync branch, via create-pull-request below
+      pull-requests: write
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install package with dependencies
+        uses: ./.github/actions/install-pkg
+        with:
+          python-version: "3.12"
+          cache-key: sync-bucket-registry
+
+      - name: Sweep CMR for the current bucket -> endpoint mapping
+        run: |
+          uv run python earthaccess-auth/scripts/sync_bucket_registry.py \
+            --output earthaccess-auth/scripts/bucket_registry.latest.json
+
+      - name: Diff against the vendored BUCKET_ENDPOINTS (for the PR body)
+        id: diff
+        run: |
+          uv run python earthaccess-auth/scripts/sync_bucket_registry.py \
+            --check > drift.txt || true
+          {
+            echo "summary<<EOF"
+            cat drift.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # bucket_registry.latest.json only changes when the live CMR sweep's
+      # output differs from what's committed, so this naturally no-ops (no
+      # PR opened) when there's no drift.
+      # TODO(security): pin to a commit SHA to match this repo's convention
+      # for third-party actions (see e.g. zizmor.yml, publish-auth-docs.yml).
+      # Left as a version tag because this sandbox has no network access to
+      # GitHub to resolve the current release SHA — resolve before merging.
+      - name: Open a PR if the sweep changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: update CMR bucket registry snapshot"
+          title: "chore: CMR bucket registry drift detected"
+          body: |
+            The weekly CMR sweep (`earthaccess-auth/scripts/sync_bucket_registry.py`)
+            found a different bucket -> `s3credentials` endpoint mapping than what's
+            committed in `earthaccess-auth/scripts/bucket_registry.latest.json`.
+
+            Diff against the vendored `BUCKET_ENDPOINTS` in
+            `earthaccess-auth/src/earthaccess_auth/daac.py`:
+
+            ```
+            ${{ steps.diff.outputs.summary }}
+            ```
+
+            If this reflects a real, intentional CMR change (new mission, new
+            DAAC, endpoint migration), update `BUCKET_ENDPOINTS` in `daac.py` by
+            hand to match before merging — see
+            `earthaccess-auth/docs/explanation/cmr-s3-buckets.md`.
+          branch: sync/bucket-registry
+          delete-branch: true
+          add-paths: earthaccess-auth/scripts/bucket_registry.latest.json
