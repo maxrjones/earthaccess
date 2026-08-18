@@ -857,6 +857,11 @@ without downloading the whole object:</p>
 <td><code>\x89HDF\r\n\x1a\n</code></td>
 </tr>
 <tr>
+<td>HDF4 (HDF-EOS2, e.g. older MODIS/VIIRS products)</td>
+<td><code>0e 03 13 01</code></td>
+<td><code>\x0e\x03\x13\x01</code></td>
+</tr>
+<tr>
 <td>NetCDF classic (CDF-1/2)</td>
 <td><code>43 44 46 01</code> / <code>43 44 46 02</code></td>
 <td><code>CDF\x01</code> / <code>CDF\x02</code></td>
@@ -906,23 +911,28 @@ sniffing bytes.</p>
 <a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
 <a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="n">credential_provider</span> <span class="o">=</span> <span class="n">s3_credential_provider</span><span class="p">(</span>
 <a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">auth</span><span class="p">,</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="n">credentials_endpoint</span><span class="o">=</span><span class="s2">&quot;https://data.nsidc.earthdatacloud.nasa.gov/s3credentials&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="n">credentials_endpoint</span><span class="o">=</span><span class="s2">&quot;https://data.lpdaac.earthdatacloud.nasa.gov/s3credentials&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="p">)</span>
 <a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="n">store</span> <span class="o">=</span> <span class="n">S3Store</span><span class="p">(</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="s2">&quot;nsidc-cumulus-prod-protected&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="s2">&quot;lp-prod-protected&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-west-2&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="n">credential_provider</span><span class="o">=</span><span class="n">credential_provider</span><span class="p">,</span>
 <a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="p">)</span>
 <a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;ATLAS/ATL03/006/2020/01/01/ATL03_20200101T000106_00650601_006_01.h5&quot;</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="n">header</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">get_range</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="k">if</span> <span class="n">header</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x89</span><span class="s2">HDF</span><span class="se">\r\n\x1a\n</span><span class="s2">&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;HDF5 (or NetCDF-4)&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="k">elif</span> <span class="n">header</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;CDF&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NetCDF classic, version </span><span class="si">{</span><span class="n">header</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unrecognized: </span><span class="si">{</span><span class="n">header</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="s2">&quot;GWELDMO.031/L07.Globe.month11.2001.hh10vv08.h4v5.doy309to334.NBAR.v3.1/&quot;</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    <span class="s2">&quot;L07.Globe.month11.2001.hh10vv08.h4v5.doy309to334.NBAR.v3.1.hdf&quot;</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="p">)</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="n">header</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">get_range</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="k">if</span> <span class="n">header</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x89</span><span class="s2">HDF</span><span class="se">\r\n\x1a\n</span><span class="s2">&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;HDF5 (or NetCDF-4)&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="k">elif</span> <span class="n">header</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x0e\x03\x13\x01</span><span class="s2">&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;HDF4 (or HDF-EOS2)&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="k">elif</span> <span class="n">header</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;CDF&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NetCDF classic, version </span><span class="si">{</span><span class="n">header</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unrecognized: </span><span class="si">{</span><span class="n">header</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p>This script is <a href="https://github.com/earthaccess-dev/earthaccess/tree/main/earthaccess-auth/examples/magic_bytes.py"><code>examples/magic_bytes.py</code></a>,
 and declares its own dependencies (<a href="https://peps.python.org/pep-0723/">PEP 723</a>),

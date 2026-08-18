@@ -1059,7 +1059,7 @@ endpoint URL (<code>endpoint=...</code>) if you already have one. These credenti
 are scoped to that DAAC's cloud bucket(s) and expire in about an hour, so
 don't cache them longer than that.</p>
 <h2 id="an-obstore-credential-provider">An obstore credential <em>provider</em></h2>
-<p>If you're handing credentials to an <code>obstore.store.S3Store</code> (see
+<p>If you're handing credentials to an <a class="autorefs autorefs-external" href="https://developmentseed.org/obstore/latest/api/store/aws/#obstore.store.S3Store"><code>obstore.store.S3Store</code></a> (see
 <a href="../read-a-dataset/">Read a dataset with xarray</a>), pass a <em>provider</em> instead
 of a one-shot credentials dict. The provider re-calls <code>get_s3_credentials()</code>
 on its own once the current credentials near expiry, so a long-running job
