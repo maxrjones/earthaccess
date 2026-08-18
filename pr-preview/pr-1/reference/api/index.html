@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://earthaccess-dev.github.io/earthaccess/reference/api/">
       
       
-        <link rel="prev" href="../../explanation/choosing-a-backend/">
+        <link rel="prev" href="../../explanation/cmr-s3-buckets/">
       
       
       
@@ -566,6 +566,8 @@
       
         
       
+        
+      
     
     
     
@@ -624,6 +626,34 @@
     
   
     Choosing a backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../explanation/cmr-s3-buckets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How the bucket registry is built
   
 
     
@@ -847,6 +877,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#earthaccess_auth.daac.BUCKET_ENDPOINTS" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BUCKET_ENDPOINTS
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#earthaccess_auth.daac.find_endpoint_by_bucket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        find_endpoint_by_bucket
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#systems" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -917,6 +969,17 @@
     <span class="md-ellipsis">
       
         LoginAttemptFailure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#earthaccess_auth.S3CredentialsEndpointUnresolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S3CredentialsEndpointUnresolved
       
     </span>
   </a>
@@ -1087,6 +1150,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#earthaccess_auth.daac.BUCKET_ENDPOINTS" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BUCKET_ENDPOINTS
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#earthaccess_auth.daac.find_endpoint_by_bucket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        find_endpoint_by_bucket
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#systems" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1157,6 +1242,17 @@
     <span class="md-ellipsis">
       
         LoginAttemptFailure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#earthaccess_auth.S3CredentialsEndpointUnresolved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S3CredentialsEndpointUnresolved
       
     </span>
   </a>
@@ -1572,17 +1668,31 @@ you already know the DAAC's cloud provider code or its
             </td>
             <td>
               <div class="doc-md-description">
-                <p>dict if not authenticated yet or the provider has no S3</p>
+                <p>dict if not authenticated yet.</p>
               </div>
             </td>
           </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+                  <code><a class="autorefs autorefs-internal" title="earthaccess_auth.S3CredentialsEndpointUnresolved (earthaccess_auth.exceptions.S3CredentialsEndpointUnresolved)" href="#earthaccess_auth.S3CredentialsEndpointUnresolved">S3CredentialsEndpointUnresolved</a></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>credentials available.</p>
+                <p>If no <code>s3credentials</code> endpoint
+could be resolved from <code>endpoint</code>, <code>daac</code>, or <code>provider</code>.</p>
               </div>
             </td>
           </tr>
@@ -2076,6 +2186,128 @@ version of the collection.</p>
 
     </div>
 
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="earthaccess_auth.daac.BUCKET_ENDPOINTS" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">earthaccess_auth.daac.BUCKET_ENDPOINTS</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+</h2>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">BUCKET_ENDPOINTS</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="earthaccess_auth.daac.find_endpoint_by_bucket" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">earthaccess_auth.daac.find_endpoint_by_bucket</span>
+
+
+</h2>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">find_endpoint_by_bucket</span><span class="p">(</span><span class="n">bucket</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents first">
+
+        <p>Look up the <code>s3credentials</code> endpoint for a bare S3 bucket name.</p>
+<p>Unlike <a class="autorefs autorefs-internal" title="earthaccess_auth.daac.find_provider" href="#earthaccess_auth.daac.find_provider"><code>find_provider</code></a>, this
+resolves buckets directly, including ones with no corresponding
+<a class="autorefs autorefs-internal" title="earthaccess_auth.daac.DAACS
+
+
+  
+      module-attribute
+  " href="#earthaccess_auth.daac.DAACS"><code>DAACS</code></a> entry (e.g. CSDA) or where the
+endpoint varies by mission rather than by DAAC (e.g. some ASF/PODAAC
+buckets).</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>bucket</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A bare S3 bucket name, e.g. <code>"podaac-ops-cumulus-protected"</code>
+(not <code>s3://podaac-ops-cumulus-protected/...</code>).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The bucket's <code>s3credentials</code> endpoint, or <code>None</code> if the bucket</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>isn't in <a class="autorefs autorefs-internal" title="earthaccess_auth.daac.BUCKET_ENDPOINTS
+
+
+  
+      module-attribute
+  " href="#earthaccess_auth.daac.BUCKET_ENDPOINTS"><code>BUCKET_ENDPOINTS</code></a>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
 </div><h2 id="systems">Systems</h2>
 <p>The Earthdata deployment to authenticate against, passed as
 <a class="autorefs autorefs-internal" title="earthaccess_auth.login" href="#earthaccess_auth.login"><code>login</code></a>'s <code>system</code> parameter. Defaults to <code>PROD</code>;
@@ -2236,6 +2468,39 @@ was attempted but Earthdata Login rejected the credentials.</p>
 <p>For example, because the supplied username/password or token were
 invalid. Contrast with <code>LoginStrategyUnavailable</code>, which is raised when
 a strategy couldn't even be attempted (e.g. missing credentials).</p>
+
+
+
+
+
+
+
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="earthaccess_auth.S3CredentialsEndpointUnresolved" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">earthaccess_auth.S3CredentialsEndpointUnresolved</span>
+
+
+</h2>
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="Exception">Exception</span></code></p>
+
+
+        <p>Raised when no <code>s3credentials</code> endpoint could be found for a request.</p>
+<p>This happens when the given <code>daac</code>/<code>provider</code> isn't in the DAAC
+registry, or the DAAC has no cloud collections and therefore no
+<code>s3credentials</code> URL.</p>
 
 
 
