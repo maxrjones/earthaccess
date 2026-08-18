@@ -7,7 +7,7 @@ credentials work at all.
 === "obstore"
 
     ```python
-    --8<-- "examples/list_bucket_contents.py"
+    --8<-- "examples/list_bucket_contents_obstore.py"
     ```
 
     [`obstore.list()`][obstore.list] returns a lazily-paginated stream: each
@@ -37,5 +37,5 @@ credentials work at all.
 Both scripts live in
 [`examples/`](https://github.com/earthaccess-dev/earthaccess/tree/main/earthaccess-auth/examples)
 and declare their own dependencies ([PEP 723](https://peps.python.org/pep-0723/)),
-so `uv run examples/list_bucket_contents.py` (or
+so `uv run examples/list_bucket_contents_obstore.py` (or
 `uv run examples/list_bucket_contents_s3fs.py`) works standalone.

@@ -9,7 +9,7 @@
 """Build an obstore credential provider that refreshes S3 credentials itself.
 
 Hand this to obstore.store.S3Store (or obspec_utils' readers, see
-read_a_dataset_s3.py) instead of a one-shot credentials dict, so a
+read_a_dataset_obstore.py) instead of a one-shot credentials dict, so a
 long-running job doesn't need its own refresh loop.
 """
 
