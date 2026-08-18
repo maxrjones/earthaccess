@@ -11,7 +11,9 @@ and slower than same-region reads.
 Already on `s3fs`? `get_s3_credentials()` returns a plain temporary AWS
 credential dict that `s3fs.S3FileSystem` (like anything else `boto3`-shaped)
 accepts directly — no separate adapter needed, just no automatic refresh:
-re-call `get_s3_credentials()` yourself once credentials near expiry.
+re-call `get_s3_credentials()` yourself once credentials near expiry. See
+the `s3fs` tab of
+[List the contents of an S3 bucket](../howto/list-bucket-contents.md).
 
 If you just need a token or headers and no file access at all, skip both.
 See [Get S3 credentials and bearer tokens](../howto/s3-credentials-and-bearer-token.md).
