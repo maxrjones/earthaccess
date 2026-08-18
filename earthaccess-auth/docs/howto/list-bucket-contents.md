@@ -8,9 +8,11 @@ credentials work at all.
 --8<-- "examples/list_bucket_contents.py"
 ```
 
-[`obstore.list()`][obstore.list] returns a lazily-paginated stream of `ObjectMeta` dicts
-(`path`, `size`, `last_modified`, `e_tag`). Iterating it fetches pages as
-needed instead of loading the whole prefix into memory up front.
+[`obstore.list()`][obstore.list] returns a lazily-paginated stream: each
+iteration yields a chunk (a list, 50 items by default) of `ObjectMeta` dicts
+(`path`, `size`, `last_modified`, `e_tag`), not a single object, so a nested
+loop unpacks each chunk. Iterating fetches pages as needed instead of loading
+the whole prefix into memory up front.
 
 Already on `s3fs`? `auth.get_s3_credentials(daac=...)` returns a plain
 temporary AWS credential dict that `s3fs.S3FileSystem` (like anything else

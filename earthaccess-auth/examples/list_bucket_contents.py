@@ -31,5 +31,6 @@ store = S3Store(
     credential_provider=credential_provider,
 )
 
-for obj in obstore.list(store, prefix="daymet/Daymet_Daily_V4R1/data"):
-    print(obj["path"], obj["size"])
+for batch in obstore.list(store, prefix="daymet/Daymet_Daily_V4R1/data"):
+    for obj in batch:
+        print(obj["path"], obj["size"])
