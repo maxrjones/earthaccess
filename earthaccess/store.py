@@ -11,6 +11,7 @@ from itertools import chain
 from pathlib import Path
 from pickle import dumps, loads
 from typing import Any
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 import fsspec
@@ -30,7 +31,7 @@ import earthaccess
 from earthaccess_auth.adapters.fsspec import get_fsspec_https_session
 
 from .auth import Auth
-from .daac import DAAC_TEST_URLS, find_provider
+from .daac import DAAC_TEST_URLS, find_endpoint_by_bucket, find_provider
 from .exceptions import DownloadFailure, EulaNotAccepted
 from .results import DataGranule
 from .search import DataCollections
@@ -593,7 +594,6 @@ class Store:
                 f"Schema for {granules[0]} is not recognized, must be an HTTP or S3 URL"
             )
             raise ValueError(msg)
-            # TODO: method to derive the DAAC from url?
 
         if self.auth is None:
             msg = "A valid Earthdata login instance is required to retrieve S3 credentials"
@@ -605,6 +605,11 @@ class Store:
                 s3_fs = self.get_s3_filesystem(provider=provider)
             elif credentials_endpoint is not None:
                 s3_fs = self.get_s3_filesystem(endpoint=credentials_endpoint)
+            else:
+                bucket = urlsplit(granules[0]).netloc
+                endpoint = find_endpoint_by_bucket(bucket)
+                if endpoint is not None:
+                    s3_fs = self.get_s3_filesystem(endpoint=endpoint)
             if s3_fs:
                 try:
                     return _open_files(
@@ -775,17 +780,6 @@ class Store:
     ) -> list[Path]:
         data_links = granules
         s3_fs = s3fs.S3FileSystem()
-        if (
-            provider is None
-            and credentials_endpoint is None
-            and self.in_region
-            and "cumulus" in data_links[0]
-        ):
-            msg = (
-                "earthaccess can't yet guess the provider for cloud collections, "
-                "we need to use one from `earthaccess.list_cloud_providers()` or if known the S3 credential endpoint"
-            )
-            raise ValueError(msg)
         if self.in_region and data_links[0].startswith("s3"):
             if credentials_endpoint is not None:
                 logger.info(
@@ -796,6 +790,21 @@ class Store:
             elif provider is not None:
                 logger.info("Accessing cloud dataset using provider: %s", provider)
                 s3_fs = self.get_s3_filesystem(provider=provider)
+            else:
+                bucket = urlsplit(data_links[0]).netloc
+                endpoint = find_endpoint_by_bucket(bucket)
+                if endpoint is None:
+                    msg = (
+                        f"earthaccess can't determine the credentials endpoint for "
+                        f"bucket {bucket!r}. Pass `provider=` (e.g. `POCLOUD`) or "
+                        "`credentials_endpoint=` (the DAAC's `s3credentials` URL) explicitly."
+                    )
+                    raise ValueError(msg)
+                logger.info(
+                    "Accessing cloud dataset using bucket-derived endpoint: %s",
+                    endpoint,
+                )
+                s3_fs = self.get_s3_filesystem(endpoint=endpoint)
 
             def _download(file: str) -> Path | None:
                 return self._download_cloud_file(s3_fs, file, local_path, force=force)
@@ -818,13 +827,15 @@ class Store:
         local_path: Path,
         provider: str | None = None,
         *,
-        credentials_endpoint: str | None = None,  # noqa: ARG002
+        credentials_endpoint: str | None = None,
         pqdm_kwargs: Mapping[str, Any] | None = None,
         force: bool = False,
     ) -> list[Path]:
         data_links: list = []
         provider = granules[0]["meta"]["provider-id"]
-        endpoint = self._own_s3_credentials(granules[0]["umm"]["RelatedUrls"])
+        endpoint = credentials_endpoint or self._own_s3_credentials(
+            granules[0]["umm"]["RelatedUrls"],
+        )
         cloud_hosted = granules[0].cloud_hosted
         access = "direct" if (cloud_hosted and self.in_region) else "external"
         data_links = list(

@@ -382,6 +382,96 @@ def test_open_files_parametrized(
     )
 
 
+def _bare_store(*, in_region: bool = True) -> Store:
+    """A `Store` with no `__init__` side effects (no EDL/EC2-metadata calls).
+
+    `_open_urls`/`_get_urls`/`_get_granules` only touch `self.auth`,
+    `self.in_region`, and `self.get_s3_filesystem`, so those are all that
+    need to be set up here.
+    """
+    store = Store.__new__(Store)
+    store.auth = MagicMock()
+    store.in_region = in_region
+    return store
+
+
+def test_open_urls_falls_back_to_bucket_endpoint():
+    """With no provider/credentials_endpoint hint, `_open_urls` should
+    resolve the s3credentials endpoint from the bucket name.
+    """
+    store = _bare_store()
+    store.get_s3_filesystem = MagicMock(return_value=MagicMock())
+
+    with patch("earthaccess.store._open_files", return_value=[]):
+        store._open_urls(["s3://podaac-ops-cumulus-protected/coll/file.nc"])
+
+    store.get_s3_filesystem.assert_called_once_with(
+        endpoint="https://archive.podaac.earthdata.nasa.gov/s3credentials",
+    )
+
+
+def test_open_urls_returns_empty_for_unknown_bucket():
+    store = _bare_store()
+    store.get_s3_filesystem = MagicMock(return_value=MagicMock())
+
+    result = store._open_urls(["s3://not-a-real-bucket/coll/file.nc"])
+
+    assert result == []
+    store.get_s3_filesystem.assert_not_called()
+
+
+def test_get_urls_falls_back_to_bucket_endpoint(tmp_path):
+    store = _bare_store()
+    store.get_s3_filesystem = MagicMock(return_value=MagicMock())
+
+    with patch("earthaccess.store.pqdm", return_value=[]):
+        store._get_urls(
+            ["s3://podaac-ops-cumulus-protected/coll/file.nc"],
+            tmp_path,
+        )
+
+    store.get_s3_filesystem.assert_called_once_with(
+        endpoint="https://archive.podaac.earthdata.nasa.gov/s3credentials",
+    )
+
+
+def test_get_urls_raises_for_unknown_bucket(tmp_path):
+    store = _bare_store()
+    store.get_s3_filesystem = MagicMock(return_value=MagicMock())
+
+    with pytest.raises(ValueError, match="not-a-real-bucket"):
+        store._get_urls(["s3://not-a-real-bucket/coll/file.nc"], tmp_path)
+
+
+def test_get_granules_honors_credentials_endpoint(tmp_path):
+    """An explicit `credentials_endpoint` must take precedence over the
+    endpoint derived from the granule's own metadata, and must actually be
+    used rather than silently ignored.
+    """
+    store = _bare_store()
+    store.get_s3_filesystem = MagicMock(return_value=MagicMock())
+
+    granule = MagicMock()
+    granule.__getitem__.side_effect = lambda k: {
+        "meta": {"provider-id": "POCLOUD"},
+        "umm": {"RelatedUrls": []},
+    }[k]
+    granule.cloud_hosted = True
+    granule.data_links.return_value = ["s3://podaac-ops-cumulus-protected/coll/file.nc"]
+    granule.size.return_value = 0
+
+    with patch("earthaccess.store.pqdm", return_value=[]):
+        store._get_granules(
+            [granule],
+            tmp_path,
+            credentials_endpoint="https://example.com/s3credentials",
+        )
+
+    store.get_s3_filesystem.assert_called_once_with(
+        endpoint="https://example.com/s3credentials",
+    )
+
+
 def test_sibling_tempfile_nominal(tmp_path):
     trg_file = tmp_path / "target.txt"
     orig_text = "Should get replaced"

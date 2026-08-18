@@ -26,6 +26,15 @@
     options:
       show_root_heading: true
 
+::: earthaccess_auth.daac.BUCKET_ENDPOINTS
+    options:
+      show_root_heading: true
+      show_attribute_values: false
+
+::: earthaccess_auth.daac.find_endpoint_by_bucket
+    options:
+      show_root_heading: true
+
 ## Systems
 
 The Earthdata deployment to authenticate against, passed as
@@ -52,6 +61,10 @@ reaches production.
       show_root_heading: true
 
 ::: earthaccess_auth.LoginAttemptFailure
+    options:
+      show_root_heading: true
+
+::: earthaccess_auth.S3CredentialsEndpointUnresolved
     options:
       show_root_heading: true
 

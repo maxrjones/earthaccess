@@ -140,6 +140,65 @@ DAAC_TEST_URLS = [
 ]
 
 
+# S3 bucket name -> `s3credentials` endpoint. Sourced from CMR's
+# `DirectDistributionInformation.S3BucketAndObjectPrefixNames` /
+# `S3CredentialsAPIEndpoint` fields (see
+# `earthaccess-auth/scripts/sync_bucket_registry.py` and
+# `docs/explanation/cmr-s3-buckets.md`), which is authoritative straight
+# from CMR rather than guessed from the bucket name. This is a flat mapping
+# rather than a per-`DAACConfig` field because the endpoint doesn't always
+# line up 1:1 with a DAAC: CSDA has no `DAACS` entry at all, and some
+# missions (e.g. SWOT) have their own endpoint distinct from their hosting
+# DAAC's default.
+#
+# Entries below were verified against real CMR responses cached in this
+# repo's own VCR test fixtures. `csda-cumulus-prod-protected-5047`'s
+# endpoint follows the same `https://<host>/s3credentials` pattern as every
+# other verified entry, derived from the host in
+# `tests/unit/test_formatters.py`'s CSDA fixture, but hasn't itself been
+# confirmed against a live CMR response.
+#
+# This list is necessarily incomplete (e.g. ASF's per-mission buckets,
+# whose endpoints vary by mission, aren't covered) until
+# `sync_bucket_registry.py` is run against live CMR and merged in.
+BUCKET_ENDPOINTS: dict[str, str] = {
+    "asdc-prod-protected": "https://data.asdc.earthdata.nasa.gov/s3credentials",
+    "csda-cumulus-prod-protected-5047": "https://data.csdap.earthdata.nasa.gov/s3credentials",
+    "gesdisc-cumulus-prod-protected": "https://data.gesdisc.earthdata.nasa.gov/s3credentials",
+    "ghrcw-protected": "https://data.ghrc.earthdata.nasa.gov/s3credentials",
+    "lp-prod-protected": "https://data.lpdaac.earthdatacloud.nasa.gov/s3credentials",
+    "lp-prod-public": "https://data.lpdaac.earthdatacloud.nasa.gov/s3credentials",
+    "nsidc-cumulus-prod-protected": "https://data.nsidc.earthdatacloud.nasa.gov/s3credentials",
+    "nsidc-cumulus-prod-public": "https://data.nsidc.earthdatacloud.nasa.gov/s3credentials",
+    "ornl-cumulus-prod-protected": "https://data.ornldaac.earthdata.nasa.gov/s3credentials",
+    "podaac-ops-cumulus-protected": "https://archive.podaac.earthdata.nasa.gov/s3credentials",
+    "podaac-ops-cumulus-public": "https://archive.podaac.earthdata.nasa.gov/s3credentials",
+    "podaac-swot-ops-cumulus-protected": "https://archive.swot.podaac.earthdata.nasa.gov/s3credentials",
+    "podaac-swot-ops-cumulus-public": "https://archive.swot.podaac.earthdata.nasa.gov/s3credentials",
+    "prod-lads": "https://data.laadsdaac.earthdatacloud.nasa.gov/s3credentials",
+}
+
+
+def find_endpoint_by_bucket(bucket: str) -> str | None:
+    """Look up the `s3credentials` endpoint for a bare S3 bucket name.
+
+    Unlike [`find_provider`][earthaccess_auth.daac.find_provider], this
+    resolves buckets directly, including ones with no corresponding
+    [`DAACS`][earthaccess_auth.daac.DAACS] entry (e.g. CSDA) or where the
+    endpoint varies by mission rather than by DAAC (e.g. some ASF/PODAAC
+    buckets).
+
+    Parameters:
+        bucket: A bare S3 bucket name, e.g. `"podaac-ops-cumulus-protected"`
+            (not `s3://podaac-ops-cumulus-protected/...`).
+
+    Returns:
+        The bucket's `s3credentials` endpoint, or `None` if the bucket
+        isn't in [`BUCKET_ENDPOINTS`][earthaccess_auth.daac.BUCKET_ENDPOINTS].
+    """
+    return BUCKET_ENDPOINTS.get(bucket)
+
+
 def find_provider(
     daac_short_name: str | None = None,
     cloud_hosted: bool | None = None,  # noqa: FBT001

@@ -71,6 +71,7 @@ nav:
       - "Get S3 credentials and bearer tokens": howto/s3-credentials-and-bearer-token.md
   - Explanation:
       - "Choosing a backend": explanation/choosing-a-backend.md
+      - "How the bucket registry is built": explanation/cmr-s3-buckets.md
   - Reference:
       - "API": reference/api.md
 
