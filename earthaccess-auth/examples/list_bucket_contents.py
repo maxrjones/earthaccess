@@ -23,13 +23,13 @@ auth = earthaccess_auth.login()
 
 credential_provider = s3_credential_provider(
     auth,
-    credentials_endpoint="https://data.nsidc.earthdatacloud.nasa.gov/s3credentials",
+    credentials_endpoint="https://data.ornldaac.earthdata.nasa.gov/s3credentials",
 )
 store = S3Store(
-    "nsidc-cumulus-prod-protected",
+    "ornl-cumulus-prod-protected",
     region="us-west-2",
     credential_provider=credential_provider,
 )
 
-for obj in obstore.list(store, prefix="ATLAS/ATL03/006/2020/01/01"):
+for obj in obstore.list(store, prefix="daymet/Daymet_Daily_V4R1/data"):
     print(obj["path"], obj["size"])

@@ -30,7 +30,7 @@ from earthaccess_auth.adapters.obstore import http_client_options
 auth = earthaccess_auth.login()
 headers = http_client_options(auth)["default_headers"]
 
-url = "https://daac.ornl.gov/daacdata/npp/grassland/NPP_BCN/data/example.nc"
+url = "https://data.ornldaac.earthdata.nasa.gov/protected/daymet/Daymet_Daily_V4R1/data/daymet_v4_daily_pr_dayl_1950.nc"
 base_url, path = url.rsplit("/", 1)
 
 store = AiohttpStore(base_url, headers=headers)

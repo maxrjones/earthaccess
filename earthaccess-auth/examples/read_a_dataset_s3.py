@@ -28,15 +28,15 @@ auth = earthaccess_auth.login()
 
 credential_provider = s3_credential_provider(
     auth,
-    credentials_endpoint="https://data.nsidc.earthdatacloud.nasa.gov/s3credentials",
+    credentials_endpoint="https://data.ornldaac.earthdata.nasa.gov/s3credentials",
 )
 store = S3Store(
-    "nsidc-cumulus-prod-protected",
+    "ornl-cumulus-prod-protected",
     region="us-west-2",
     credential_provider=credential_provider,
 )
 
-path = "ATLAS/ATL03/006/2020/01/01/ATL03_20200101T000106_00650601_006_01.h5"
+path = "daymet/Daymet_Daily_V4R1/data/daymet_v4_daily_pr_dayl_1950.nc"
 reader = EagerStoreReader(store, path)
 ds = xr.open_dataset(reader, engine="h5netcdf")
 print(ds)
