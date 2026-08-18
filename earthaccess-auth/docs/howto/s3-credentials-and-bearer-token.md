@@ -48,7 +48,7 @@ don't cache them longer than that.
 
 ## An obstore credential *provider*
 
-If you're handing credentials to an `obstore.store.S3Store` (see
+If you're handing credentials to an [`obstore.store.S3Store`][] (see
 [Read a dataset with xarray](read-a-dataset.md)), pass a *provider* instead
 of a one-shot credentials dict. The provider re-calls `get_s3_credentials()`
 on its own once the current credentials near expiry, so a long-running job

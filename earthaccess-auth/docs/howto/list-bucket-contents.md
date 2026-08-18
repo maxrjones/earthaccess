@@ -8,7 +8,7 @@ credentials work at all.
 --8<-- "examples/list_bucket_contents.py"
 ```
 
-`obstore.list()` returns a lazily-paginated stream of `ObjectMeta` dicts
+[`obstore.list()`][obstore.list] returns a lazily-paginated stream of `ObjectMeta` dicts
 (`path`, `size`, `last_modified`, `e_tag`). Iterating it fetches pages as
 needed instead of loading the whole prefix into memory up front.
 

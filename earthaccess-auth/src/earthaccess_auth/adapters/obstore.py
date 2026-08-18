@@ -24,7 +24,7 @@ def s3_credential_provider(
 ) -> NasaEarthdataCredentialProvider:
     """Build an obstore credential provider that refreshes EDL-issued S3 credentials.
 
-    Hand this to `obstore.store.S3Store(credential_provider=...)` instead of
+    Hand this to [`obstore.store.S3Store`][]`(credential_provider=...)` instead of
     a one-shot credentials dict, so a long-running job doesn't need its own
     refresh loop — the provider re-authenticates with EDL once the current
     credentials near expiry.
@@ -36,7 +36,7 @@ def s3_credential_provider(
             [`DAACS`][earthaccess_auth.daac.DAACS].
 
     Returns:
-        A credential provider usable as `obstore.store.S3Store`'s
+        A credential provider usable as [`obstore.store.S3Store`][]'s
         `credential_provider` argument.
 
     Raises:
@@ -66,7 +66,7 @@ def http_client_options(auth: Auth) -> dict[str, Any]:
 
     Returns:
         A dict with a `default_headers` key carrying the bearer token,
-        matching `obstore.store.ClientConfig`'s shape.
+        matching [`obstore.store.ClientConfig`][]'s shape.
 
     Raises:
         ValueError: If `auth` has not been authenticated (`auth.token is None`).
