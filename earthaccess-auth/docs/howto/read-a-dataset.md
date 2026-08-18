@@ -35,9 +35,11 @@ call underneath doesn't change.
     `obspec-utils` and `aiohttp`:
     `pip install earthaccess-auth[obstore] obspec-utils aiohttp`.
 
-    Use this when the granule is only available on-prem (no S3 bucket), or
-    when you're running outside `us-west-2` and don't want to pay
-    cross-region S3 egress.
+    Use this for granules that are on-prem only (no S3 bucket), or for
+    cloud-hosted granules when you're running outside `us-west-2` and don't
+    want to pay cross-region S3 egress — the example below reads a
+    cloud-hosted granule this way, over HTTPS instead of S3, so the same
+    file stays comparable across all four tabs.
 
     ```python
     --8<-- "examples/read_a_dataset_obspec_utils.py"
@@ -66,9 +68,10 @@ install step required.
     valid for one DAAC's cloud bucket(s), for about an hour. If you're reading
     granules from more than one DAAC, fetch credentials per DAAC; if a read
     fails with an auth error partway through a long-running job, get fresh
-    credentials rather than retrying with the ones you have. `s3fs` and
-    `fsspec` don't refresh automatically either way — re-call
-    `get_s3_credentials()` yourself once credentials near expiry.
+    credentials rather than retrying with the ones you have. `s3fs` doesn't
+    refresh automatically either — re-call `get_s3_credentials()` yourself
+    once credentials near expiry. (The `fsspec (HTTPS)` tab uses a bearer
+    token instead of S3 credentials, with its own separate expiry.)
 
 See [Choosing a backend](../explanation/choosing-a-backend.md) for how to
 decide between these four.

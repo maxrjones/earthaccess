@@ -34,9 +34,9 @@ need to.
 
 ## Where to go next
 
-- [Read a dataset with xarray](howto/read-a-dataset.md): obstore (S3) and obspec-utils (HTTPS), side by side
+- [Read a dataset with xarray](howto/read-a-dataset.md): obstore, s3fs, obspec-utils, and fsspec, side by side
 - [List the contents of an S3 bucket](howto/list-bucket-contents.md)
 - [Identify a file from its magic bytes](howto/magic-bytes.md)
 - [Get S3 credentials and bearer tokens](howto/s3-credentials-and-bearer-token.md)
-- [Choosing a backend](explanation/choosing-a-backend.md): obstore vs. obspec-utils vs. s3fs
+- [Choosing a backend](explanation/choosing-a-backend.md): obstore vs. obspec-utils vs. fsspec vs. s3fs
 - [API reference](reference/api.md)

@@ -41,7 +41,7 @@ For anything that wants `key`/`secret`/`token` (or `aws_access_key_id`
 
 You can look credentials up by DAAC short name (`daac="NSIDC"`), by cloud
 provider code (`provider="NSIDC_CPRD"`, from
-[`find_provider`](../reference/api.md)), or by a raw `s3credentials`
+[`find_provider`](../reference/api.md#earthaccess_auth.daac.find_provider)), or by a raw `s3credentials`
 endpoint URL (`endpoint=...`) if you already have one. These credentials
 are scoped to that DAAC's cloud bucket(s) and expire in about an hour, so
 don't cache them longer than that.

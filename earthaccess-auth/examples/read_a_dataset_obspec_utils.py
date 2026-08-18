@@ -12,12 +12,13 @@
 # # TODO: switch to a released earthaccess-auth once this branch merges
 # earthaccess-auth = { git = "https://github.com/maxrjones/earthaccess", subdirectory = "earthaccess-auth", branch = "poc/earthaccess-auth" }
 # ///
-"""Read an on-prem (non-S3) granule into xarray over HTTPS.
+"""Read a granule into xarray over HTTPS via obspec-utils.
 
-Use this when the data isn't in NASA's Earthdata Cloud, or when running
-outside us-west-2 and cross-region S3 egress isn't worth paying for. Uses
-the same EagerStoreReader as the S3 example: xarray doesn't need to know
-which backend is underneath.
+Use this for on-prem-only granules (no S3 bucket), or for cloud-hosted
+granules when you're running outside us-west-2 and cross-region S3 egress
+isn't worth paying for. Uses the same EagerStoreReader as the S3 example,
+reading the identical granule: xarray doesn't need to know which backend
+is underneath.
 """
 
 import xarray as xr
