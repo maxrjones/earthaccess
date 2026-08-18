@@ -31,5 +31,7 @@ fs = s3fs.S3FileSystem(
     client_kwargs={"region_name": "us-west-2"},
 )
 
-for obj in fs.ls("ornl-cumulus-prod-protected/daymet/Daymet_Daily_V4R1/data", detail=True):
+for obj in fs.ls(
+    "ornl-cumulus-prod-protected/daymet/Daymet_Daily_V4R1/data", detail=True
+):
     print(obj["name"], obj["size"])

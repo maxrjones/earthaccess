@@ -291,6 +291,10 @@ def main() -> None:
         }
         with open(args.output, "w") as f:  # noqa: PTH123
             json.dump(serializable, f, indent=2, sort_keys=True)
+            # Trailing newline, so the regenerated snapshot satisfies the
+            # end-of-file-fixer pre-commit hook rather than failing CI on
+            # every scheduled run.
+            f.write("\n")
         logger.info("Wrote %s", args.output)
 
     if args.check and diff_against_vendored(registry):
