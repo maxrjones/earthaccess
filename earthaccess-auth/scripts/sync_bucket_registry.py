@@ -33,6 +33,7 @@ import json
 import logging
 import re
 import sys
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 
 import requests
@@ -44,18 +45,28 @@ logger = logging.getLogger(__name__)
 CMR_COLLECTIONS_URL = "https://cmr.earthdata.nasa.gov/search/collections.umm_json"
 PAGE_SIZE = 2000
 
-# Known non-production placeholder values that show up in some collections'
-# DirectDistributionInformation (e.g. QA/test collections). These aren't
-# real S3 buckets and shouldn't be resolvable.
-DROPPED_BUCKETS = frozenset({"TestBucket"})
+# Most DAACs write bare "bucket/prefix" entries, but ORNL, LPDAAC, GES DISC,
+# ASDC, OB.DAAC, LAADS and CSDA all write fully-qualified "s3://bucket/prefix"
+# URLs instead — together the clear majority of entries in CMR. Strip any
+# scheme before splitting, or every one of those collapses into a single
+# bogus "s3:" bucket.
+_SCHEME_RE = re.compile(r"^[a-z0-9+.-]+://")
 
-# Real-world bucket/prefix entries are sometimes missing the "/" separator
-# between the bucket name and the object prefix, e.g.
-# "gesdisc-cumulus-prod-protectedAqua_AIRS_Level2" (should be
-# "gesdisc-cumulus-prod-protected/Aqua_AIRS_Level2"). NASA Cumulus bucket
-# names consistently end in "-protected" or "-public" (optionally with a
-# numeric suffix, e.g. CSDA's "csda-cumulus-prod-protected-5047"), so we can
-# recover the intended split even without the separator.
+# S3 bucket naming rules: 3-63 characters, lowercase alphanumerics, dots and
+# hyphens only, starting and ending with an alphanumeric. Anything else in
+# `S3BucketAndObjectPrefixNames` is either malformed metadata or a
+# placeholder (e.g. the literal "TestBucket" in a QA collection), so this
+# doubles as the filter for junk entries.
+_S3_BUCKET_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$")
+
+# Some entries are missing the "/" separator between the bucket name and the
+# object prefix, e.g. "gesdisc-cumulus-prod-protectedAqua_AIRS_Level2"
+# (should be "gesdisc-cumulus-prod-protected/Aqua_AIRS_Level2"). NASA Cumulus
+# bucket names consistently end in "-protected" or "-public" (optionally with
+# a numeric suffix, e.g. CSDA's "csda-cumulus-prod-protected-5047"), so we can
+# recover the intended split even without the separator. This is only applied
+# to bucket names that are otherwise invalid, so a legitimate name that
+# happens to end in a numeric suffix is never split apart.
 _BUCKET_SUFFIX_RE = re.compile(r"^(.*?-(?:protected|public)(?:-\d+)?)(.+)$")
 
 
@@ -67,18 +78,34 @@ class BucketEndpoint:
     providers: set[str] = field(default_factory=set)
 
 
+def is_valid_bucket_name(bucket: str) -> bool:
+    """Whether `bucket` is a syntactically valid S3 bucket name."""
+    return _S3_BUCKET_NAME_RE.match(bucket) is not None
+
+
 def split_bucket_and_prefix(entry: str) -> tuple[str, str]:
-    """Split a raw `S3BucketAndObjectPrefixNames` entry into (bucket, prefix)."""
-    if "/" in entry:
-        bucket, _, prefix = entry.partition("/")
+    """Split a raw `S3BucketAndObjectPrefixNames` entry into (bucket, prefix).
+
+    The bucket half may still be unusable (see
+    [`is_valid_bucket_name`][is_valid_bucket_name]) when the entry is
+    malformed beyond repair.
+    """
+    entry = _SCHEME_RE.sub("", entry)
+
+    bucket, _, prefix = entry.partition("/")
+    if is_valid_bucket_name(bucket):
         return bucket, prefix
 
-    if match := _BUCKET_SUFFIX_RE.match(entry):
-        return match.group(1), match.group(2)
+    # Invalid bucket half: try recovering a missing "bucket/prefix"
+    # separator, keeping the repair only if it yields a valid bucket name.
+    match = _BUCKET_SUFFIX_RE.match(bucket)
+    if match and is_valid_bucket_name(match.group(1)):
+        recovered_bucket, recovered_prefix = match.group(1), match.group(2)
+        if prefix:
+            recovered_prefix = f"{recovered_prefix}/{prefix}"
+        return recovered_bucket, recovered_prefix
 
-    # No recognizable bucket suffix and no separator: treat the whole
-    # string as the bucket name rather than dropping the data on the floor.
-    return entry, ""
+    return bucket, prefix
 
 
 def iter_cmr_collections(
@@ -112,10 +139,31 @@ def iter_cmr_collections(
     return collections
 
 
+def resolve_endpoint(bucket: str, endpoints: Counter[str]) -> str:
+    """Pick one endpoint for a bucket that CMR maps to several.
+
+    A handful of buckets (currently ASF's OPERA ones) are published with two
+    different `S3CredentialsAPIEndpoint` hosts across collections. Take the
+    most frequently published one, breaking ties on the endpoint string, so
+    the sweep is reproducible rather than dependent on CMR's result order —
+    otherwise the scheduled `--check` job flaps between the two.
+    """
+    winner = min(endpoints, key=lambda endpoint: (-endpoints[endpoint], endpoint))
+    if len(endpoints) > 1:
+        logger.warning(
+            "bucket %r maps to multiple endpoints %s; keeping %r",
+            bucket,
+            sorted(f"{endpoint} (x{count})" for endpoint, count in endpoints.items()),
+            winner,
+        )
+    return winner
+
+
 def build_bucket_registry(collections: list[dict]) -> dict[str, BucketEndpoint]:
     """Reduce CMR collections down to a bucket -> (endpoint, region) mapping."""
-    registry: dict[str, BucketEndpoint] = {}
-    conflicts: dict[str, set[str]] = {}
+    endpoints: dict[str, Counter[str]] = defaultdict(Counter)
+    regions: dict[str, str] = {}
+    providers: dict[str, set[str]] = defaultdict(set)
 
     for item in collections:
         meta = item.get("meta", {})
@@ -130,34 +178,39 @@ def build_bucket_registry(collections: list[dict]) -> dict[str, BucketEndpoint]:
         prefixes = direct_dist.get("S3BucketAndObjectPrefixNames", [])
         if not endpoint or not prefixes:
             continue
+        if not endpoint.startswith("https://"):
+            # Observed in the wild: an S3 URI and a "www.testexample.com"
+            # placeholder pasted into the endpoint field.
+            logger.warning(
+                "provider %s: ignoring non-HTTPS S3CredentialsAPIEndpoint %r",
+                provider,
+                endpoint,
+            )
+            continue
 
         for raw_entry in prefixes:
             bucket, _prefix = split_bucket_and_prefix(raw_entry)
-            if not bucket or bucket in DROPPED_BUCKETS:
+            if not is_valid_bucket_name(bucket):
+                logger.warning(
+                    "provider %s: ignoring unusable bucket entry %r",
+                    provider,
+                    raw_entry,
+                )
                 continue
 
-            existing = registry.get(bucket)
-            if existing is None:
-                registry[bucket] = BucketEndpoint(
-                    bucket=bucket,
-                    endpoint=endpoint,
-                    region=region,
-                    providers={provider},
-                )
-            else:
-                existing.providers.add(provider)
-                if existing.endpoint != endpoint:
-                    conflicts.setdefault(bucket, {existing.endpoint}).add(endpoint)
+            endpoints[bucket][endpoint] += 1
+            providers[bucket].add(provider)
+            regions.setdefault(bucket, region)
 
-    for bucket, endpoints in conflicts.items():
-        logger.warning(
-            "bucket %r maps to multiple endpoints: %s (keeping %r)",
-            bucket,
-            sorted(endpoints),
-            registry[bucket].endpoint,
+    return {
+        bucket: BucketEndpoint(
+            bucket=bucket,
+            endpoint=resolve_endpoint(bucket, bucket_endpoints),
+            region=regions[bucket],
+            providers=providers[bucket],
         )
-
-    return registry
+        for bucket, bucket_endpoints in sorted(endpoints.items())
+    }
 
 
 def diff_against_vendored(registry: dict[str, BucketEndpoint]) -> bool:
@@ -177,7 +230,9 @@ def diff_against_vendored(registry: dict[str, BucketEndpoint]) -> bool:
     )
 
     if not (added or removed or changed):
-        logger.info("No drift: vendored BUCKET_ENDPOINTS matches the current CMR sweep.")
+        logger.info(
+            "No drift: vendored BUCKET_ENDPOINTS matches the current CMR sweep."
+        )
         return False
 
     if added:

@@ -39,6 +39,24 @@ def test_split_bucket_and_prefix_with_separator():
     )
 
 
+def test_split_bucket_and_prefix_strips_s3_scheme():
+    # ORNL, LPDAAC, GES DISC, ASDC, OB.DAAC, LAADS and CSDA all publish
+    # fully-qualified S3 URIs rather than bare "bucket/prefix" entries.
+    assert split_bucket_and_prefix("s3://ornl-cumulus-prod-protected/daacdata/") == (
+        "ornl-cumulus-prod-protected",
+        "daacdata/",
+    )
+
+
+def test_split_bucket_and_prefix_keeps_valid_numeric_suffix_intact():
+    # Regression guard: "csda-cumulus-prod-protected-5047" is a *valid*
+    # bucket name, so the missing-separator repair must not fire and chop
+    # the numeric suffix off into the prefix.
+    assert split_bucket_and_prefix(
+        "s3://csda-cumulus-prod-protected-5047/WV03_MSI_L2A___1/",
+    ) == ("csda-cumulus-prod-protected-5047", "WV03_MSI_L2A___1/")
+
+
 def test_split_bucket_and_prefix_recovers_missing_separator():
     # The real, observed malformed entry: no "/" between bucket and prefix.
     assert split_bucket_and_prefix(
@@ -105,3 +123,64 @@ def test_build_bucket_registry_skips_collections_without_direct_distribution():
     collections = [{"meta": {"provider-id": "SOME_PROVIDER"}, "umm": {}}]
 
     assert build_bucket_registry(collections) == {}
+
+
+def test_split_bucket_and_prefix_recovers_missing_separator_in_s3_uri():
+    # The exact entry GES DISC publishes for AIRXBCAL: an S3 URI whose
+    # bucket half is missing the separator before the collection prefix.
+    assert split_bucket_and_prefix(
+        "s3://gesdisc-cumulus-prod-protectedAqua_AIRS_Level2/AIRXBCAL.005/",
+    ) == ("gesdisc-cumulus-prod-protected", "Aqua_AIRS_Level2/AIRXBCAL.005/")
+
+
+def test_build_bucket_registry_drops_non_https_endpoints():
+    # Both observed in production CMR: a placeholder hostname and an S3 URI
+    # pasted into the credentials-endpoint field.
+    collections = [
+        _collection(
+            "SCIOPS",
+            "www.testexample.com",
+            "us-west-2",
+            ["podaac-ops-cumulus-protected/COLL/"],
+        ),
+        _collection(
+            "LPCLOUD",
+            "s3://lp-prod-public/LPJ_L2_SSREF.002",
+            "us-west-2",
+            ["lp-prod-public/LPJ_L2_SSREF.002/"],
+        ),
+    ]
+
+    assert build_bucket_registry(collections) == {}
+
+
+def test_build_bucket_registry_resolves_conflicts_by_frequency():
+    alaska = "https://cumulus.asf.alaska.edu/s3credentials"
+    nasa = "https://cumulus.asf.earthdatacloud.nasa.gov/s3credentials"
+    prefixes = ["asf-cumulus-prod-opera-products/OPERA_L3/"]
+    collections = [
+        _collection("ASF", nasa, "us-west-2", prefixes),
+        _collection("ASF", alaska, "us-west-2", prefixes),
+        _collection("ASF", alaska, "us-west-2", prefixes),
+    ]
+
+    registry = build_bucket_registry(collections)
+
+    assert registry["asf-cumulus-prod-opera-products"].endpoint == alaska
+
+
+def test_build_bucket_registry_breaks_conflict_ties_deterministically():
+    alaska = "https://cumulus.asf.alaska.edu/s3credentials"
+    nasa = "https://cumulus.asf.earthdatacloud.nasa.gov/s3credentials"
+    prefixes = ["asf-cumulus-prod-opera-browse/OPERA_L3/"]
+    tied = [
+        _collection("ASF", nasa, "us-west-2", prefixes),
+        _collection("ASF", alaska, "us-west-2", prefixes),
+    ]
+
+    # An even split must not depend on the order CMR happens to return
+    # collections in, or the scheduled --check job flaps between the two.
+    forward = build_bucket_registry(tied)["asf-cumulus-prod-opera-browse"]
+    reversed_ = build_bucket_registry(tied[::-1])["asf-cumulus-prod-opera-browse"]
+
+    assert forward.endpoint == reversed_.endpoint == alaska
