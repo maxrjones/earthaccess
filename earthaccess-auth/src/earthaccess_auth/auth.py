@@ -121,24 +121,24 @@ class Auth:
         persist: bool = False,  # noqa: FBT001, FBT002
         system: System | None = None,
     ) -> Any:
-        """Authenticate with Earthdata login.
+        """Authenticate with Earthdata Login (EDL).
 
         Parameters:
             strategy:
                 The authentication method.
 
                 * **"interactive"**: Enter a username and password.
-                * **"netrc"**: (default) Retrieve a username and password from ~/.netrc.
+                * **"netrc"**: (default) Retrieve a username and password from `~/.netrc`.
                 * **"environment"**:
                     Retrieve either a username and password pair from the
                     `EARTHDATA_USERNAME` and `EARTHDATA_PASSWORD` environment variables,
                     or an Earthdata login token from the `EARTHDATA_TOKEN` environment
                     variable.
-            persist: Will persist username and password credentials in a `.netrc` file.
-            system: the EDL endpoint to log in to Earthdata, defaults to PROD
+            persist: Persist username and password credentials in a `.netrc` file.
+            system: The EDL endpoint to authenticate against. Defaults to `PROD`.
 
         Returns:
-            An instance of Auth.
+            This `Auth` instance, now authenticated.
 
         Raises:
             LoginAttemptFailure: If the NASA Earthdata Login service rejects
@@ -177,8 +177,9 @@ class Auth:
     def refresh_tokens(self) -> bool:
         """Refresh CMR tokens.
 
-        Tokens are used to do authenticated queries on CMR for restricted and early access datasets.
-        This method renews the tokens to make sure we can query the collections allowed to our EDL user.
+        CMR tokens authenticate queries for restricted and early-access
+        datasets. This renews them so queries keep working for whatever
+        collections the authenticated user has access to.
         """
         return self.authenticated
 
@@ -188,17 +189,22 @@ class Auth:
         provider: str | None = None,
         endpoint: str | None = None,
     ) -> dict[str, str]:
-        """Gets AWS S3 credentials for a given NASA cloud provider.
+        """Get temporary AWS S3 credentials for a NASA DAAC's cloud bucket(s).
 
-        The easier way is to use the DAAC short name; provider is optional if we know it.
+        Usually you only need `daac`. `provider` and `endpoint` are for when
+        you already know the DAAC's cloud provider code or its
+        `s3credentials` URL and want to skip the DAAC registry lookup.
 
         Parameters:
-            daac: The name of a NASA DAAC, e.g. NSIDC or PODAAC.
-            provider: A valid cloud provider. Each DAAC has a provider code for their cloud distributions.
-            endpoint: Getting the credentials directly from the S3Credentials URL.
+            daac: A DAAC's short name, e.g. `"NSIDC"` or `"PODAAC"`.
+            provider: A DAAC's cloud provider code, e.g. `"NSIDC_CPRD"`.
+            endpoint: A DAAC's `s3credentials` URL directly.
 
         Returns:
-            A Python dictionary with the temporary AWS S3 credentials.
+            A dict with the temporary AWS S3 credentials (`accessKeyId`,
+            `secretAccessKey`, `sessionToken`, `expiration`), or an empty
+            dict if not authenticated yet or the provider has no S3
+            credentials available.
         """
         if not self.authenticated:
             logger.info("We need to authenticate with EDL first")
@@ -232,10 +238,11 @@ class Auth:
             return {}
 
     def get_session(self) -> requests.Session:
-        """Returns a new request session instance.
+        """Build a new `requests.Session` with EDL authentication configured.
 
         Returns:
-            class Session instance with Auth and bearer token headers
+            A `requests.Session` carrying the bearer token (if authenticated)
+            and re-attaching EDL credentials after redirects.
         """
         username, password = self.username, self.password
         auth = (username, password) if username and password else None

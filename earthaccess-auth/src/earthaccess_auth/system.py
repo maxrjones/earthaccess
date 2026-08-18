@@ -1,14 +1,4 @@
-"""Earthdata systems (production and UAT).
-
-Moves from `earthaccess/system.py` (35 lines) with one change: main's version
-does `from cmr import CMR_OPS, CMR_UAT`, which would drag python-cmr into this
-otherwise requests-only package. The two CMR base URLs are inlined as literals
-instead (values verified against python-cmr). The field set is kept intact —
-including the CMR/status fields auth itself never touches — so earthaccess can
-re-export this System unchanged and pass it everywhere it does today.
-
-Complete as written; small enough to be real code in the sketch.
-"""
+"""Earthdata systems: production (`PROD`) and user acceptance testing (`UAT`)."""
 
 from dataclasses import dataclass
 from typing import NewType
@@ -35,9 +25,12 @@ PROD = System(
     StatusApiURL("https://status.earthdata.nasa.gov/api/v1/statuses"),
     EDLHostname("urs.earthdata.nasa.gov"),
 )
+"""NASA's production Earthdata system. The default for `login(system=...)`."""
+
 UAT = System(
     CMRBaseURL("https://cmr.uat.earthdata.nasa.gov/search/"),
     StatusURL("https://status.uat.earthdata.nasa.gov/"),
     StatusApiURL("https://status.uat.earthdata.nasa.gov/api/v1/statuses"),
     EDLHostname("uat.urs.earthdata.nasa.gov"),
 )
+"""NASA's user acceptance testing (UAT) Earthdata system, for pre-release testing."""

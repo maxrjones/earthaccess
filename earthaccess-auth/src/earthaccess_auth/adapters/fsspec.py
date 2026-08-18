@@ -1,9 +1,4 @@
-"""Authenticated fsspec HTTPS filesystem (extra: earthaccess-auth[fsspec]).
-
-This is `earthaccess.store.Store.get_fsspec_session` relocated so
-fsspec consumers (e.g. titiler-cmr's external-access path) need no other
-part of earthaccess.
-"""
+"""Authenticated fsspec HTTPS filesystem (extra: earthaccess-auth[fsspec])."""
 
 import fsspec
 
@@ -11,10 +6,18 @@ from earthaccess_auth.auth import Auth
 
 
 def get_fsspec_https_session(auth: Auth) -> fsspec.AbstractFileSystem:
-    """Return an HTTPFileSystem sending the EDL bearer token on every request.
+    """Build an fsspec HTTPFileSystem that sends the EDL bearer token on every request.
 
-    trust_env must stay False: if aiohttp also picks up ambient auth from the
-    environment while a bearer token is present, EDL rejects the request.
+    `trust_env` is disabled: if aiohttp also picked up ambient credentials
+    from the environment while a bearer token is set, EDL would reject the
+    request.
+
+    Parameters:
+        auth: An authenticated `Auth` instance.
+
+    Returns:
+        An `fsspec.AbstractFileSystem` (`HTTPFileSystem`) ready to pass to
+        `xarray.open_dataset` or open files directly.
 
     Raises:
         ValueError: If `auth` has not been authenticated (`auth.token is None`).

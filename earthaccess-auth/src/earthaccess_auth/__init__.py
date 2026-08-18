@@ -40,12 +40,28 @@ def login(
     persist: bool = False,  # noqa: FBT001, FBT002
     system: System = PROD,
 ) -> Auth:
-    """Authenticate with EDL and return an Auth instance.
+    """Authenticate with Earthdata Login (EDL) and return an Auth instance.
 
-    Mirrors `earthaccess.login`, including the `"all"` fallback chain
-    (environment, then netrc, then interactive), which on main lives in
-    `earthaccess.api.login` rather than on Auth. Unlike earthaccess there is
-    no module-level singleton — callers hold the returned Auth themselves.
+    Parameters:
+        strategy:
+            The authentication method.
+
+            * **"all"**: (default) Try, in order: environment variables,
+                `~/.netrc`, then an interactive prompt — stopping at the
+                first one that works.
+            * **"interactive"**: Enter a username and password.
+            * **"netrc"**: Retrieve a username and password from `~/.netrc`.
+            * **"environment"**:
+                Retrieve either a username and password pair from the
+                `EARTHDATA_USERNAME` and `EARTHDATA_PASSWORD` environment
+                variables, or an Earthdata login token from the
+                `EARTHDATA_TOKEN` environment variable.
+        persist: Persist username and password credentials in a `.netrc` file.
+        system: The EDL endpoint to authenticate against. Defaults to `PROD`.
+
+    Returns:
+        An authenticated `Auth` instance. Hold onto it yourself — there's no
+        module-level singleton, so pass it to whatever needs it.
     """
     auth = Auth()
 

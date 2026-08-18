@@ -119,6 +119,13 @@ DAACS: list[DAACConfig] = [
         "eulas": [],
     },
 ]
+"""The registry of NASA Earthdata DAACs known to `earthaccess-auth`.
+
+Each entry is a `DAACConfig` describing one DAAC's short name,
+cloud/on-prem provider codes, and `s3credentials` endpoint. Look entries up
+with [`find_provider`][earthaccess_auth.daac.find_provider] rather than
+scanning this list directly.
+"""
 
 
 # Some testing urls behind EDL
@@ -137,6 +144,19 @@ def find_provider(
     daac_short_name: str | None = None,
     cloud_hosted: bool | None = None,  # noqa: FBT001
 ) -> str | None:
+    """Look up a DAAC's CMR provider code by its short name.
+
+    Parameters:
+        daac_short_name: A DAAC's short name, e.g. `"NSIDC"` or `"PODAAC"`.
+        cloud_hosted: If `True`, prefer the DAAC's cloud provider code over
+            its on-prem one, falling back to on-prem if the DAAC has no
+            cloud provider.
+
+    Returns:
+        The matching provider code (e.g. `"NSIDC_CPRD"`), or `None` if
+        `daac_short_name` isn't in the
+        [DAAC registry][earthaccess_auth.daac.DAACS].
+    """
     for daac in DAACS:
         if daac_short_name == daac["short-name"]:
             if cloud_hosted:
@@ -150,6 +170,22 @@ def find_provider(
 
 
 def find_provider_by_shortname(short_name: str, cloud_hosted: bool) -> str | None:  # noqa: FBT001
+    """Look up a collection's CMR provider code by querying CMR directly.
+
+    Unlike [`find_provider`][earthaccess_auth.daac.find_provider], this
+    queries CMR itself instead of the local DAAC registry, so it also works
+    for collections whose provider isn't listed in
+    [`DAACS`][earthaccess_auth.daac.DAACS].
+
+    Parameters:
+        short_name: A collection's short name, e.g. `"ATL03"`.
+        cloud_hosted: Whether to search for the cloud-hosted or on-prem
+            version of the collection.
+
+    Returns:
+        The provider ID of the first matching collection, or `None` if no
+        collection with that short name was found.
+    """
     base_url = "https://cmr.earthdata.nasa.gov/search/collections.umm_json?"
     providers = requests.get(
         f"{base_url}&cloud_hosted={cloud_hosted}&short_name={short_name}",

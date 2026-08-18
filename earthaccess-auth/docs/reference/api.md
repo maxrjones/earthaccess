@@ -16,6 +16,7 @@
 ::: earthaccess_auth.daac.DAACS
     options:
       show_root_heading: true
+      show_attribute_values: false
 
 ::: earthaccess_auth.daac.find_provider
     options:
