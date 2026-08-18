@@ -12,6 +12,7 @@ on:
       - "earthaccess-auth/pyproject.toml"
       - ".github/workflows/publish-auth-docs.yml"
   pull_request:
+    types: [opened, synchronize, reopened, closed]
     paths:
       - "earthaccess-auth/docs/**"
       - "earthaccess-auth/src/**"
@@ -56,7 +57,7 @@ jobs:
   deploy:
     name: Deploy earthaccess-auth docs
     needs: test
-    # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: github-pages
     permissions:
@@ -85,3 +86,122 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           uv run --directory earthaccess-auth --group docs mkdocs gh-deploy --force
+
+  preview:
+    name: Deploy PR preview
+    needs: test
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    # No `environment:` here on purpose: the github-pages environment's
+    # deployment-branch policy only allows main, which is what production
+    # `deploy` needs and PR previews (by definition, not on main) can't
+    # satisfy. Previews publish straight to a pr-preview/ subpath on
+    # gh-pages instead, same as `deploy` does for the production site.
+    permissions:
+      contents: write # push the preview to gh-pages
+      pull-requests: write # comment the preview link on the PR
+    concurrency:
+      group: auth-docs-preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+          cache-suffix: auth-docs
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Build docs
+        run: uv run --directory earthaccess-auth --group docs mkdocs build --strict --site-dir ../pr-preview-site
+
+      - name: Publish preview to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          preview_path="pr-preview/pr-${PR_NUMBER}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch origin gh-pages
+          git worktree add /tmp/gh-pages origin/gh-pages
+
+          rm -rf "/tmp/gh-pages/${preview_path}"
+          mkdir -p "/tmp/gh-pages/${preview_path}"
+          cp -r pr-preview-site/. "/tmp/gh-pages/${preview_path}/"
+
+          cd /tmp/gh-pages
+          git add "${preview_path}"
+          if git diff --cached --quiet; then
+            echo "Preview unchanged, nothing to push"
+          else
+            git commit -m "docs(preview): pr #${PR_NUMBER} @ ${GITHUB_SHA}"
+            git push origin HEAD:gh-pages
+          fi
+
+      - name: Comment preview link
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pull_number = context.payload.pull_request.number;
+            const url = `https://${owner}.github.io/${repo}/pr-preview/pr-${pull_number}/`;
+            const marker = "<!-- earthaccess-auth-docs-preview -->";
+            const body = `${marker}\n📚 earthaccess-auth docs preview: ${url}`;
+
+            const comments = await github.rest.issues.listComments({
+              owner, repo, issue_number: pull_number,
+            });
+            const existing = comments.data.find((c) => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: pull_number, body });
+            }
+
+  preview-cleanup:
+    name: Remove PR preview
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # remove the closed PR's preview from gh-pages
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Remove preview from gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          preview_path="pr-preview/pr-${PR_NUMBER}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch origin gh-pages
+          git worktree add /tmp/gh-pages origin/gh-pages
+
+          if [ -d "/tmp/gh-pages/${preview_path}" ]; then
+            cd /tmp/gh-pages
+            git rm -rq "${preview_path}"
+            git commit -m "docs(preview): remove pr #${PR_NUMBER} preview"
+            git push origin HEAD:gh-pages
+          else
+            echo "No preview at ${preview_path}, nothing to remove"
+          fi
