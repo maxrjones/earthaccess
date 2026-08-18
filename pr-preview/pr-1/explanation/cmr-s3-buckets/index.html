@@ -1043,7 +1043,7 @@ of EDL-derived STS credentials is valid for the whole bucket regardless of
 prefix.</p>
 <h2 id="running-the-sweep">Running the sweep</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gp">$ </span>python<span class="w"> </span>earthaccess-auth/scripts/sync_bucket_registry.py<span class="w"> </span>--output<span class="w"> </span>bucket_registry.json
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="go">Swept 8214 cloud-hosted collections -&gt; 47 buckets.</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="go">Swept 9846 cloud-hosted collections -&gt; 36 buckets.</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="go">Wrote bucket_registry.json</span>
 </code></pre></div>
 <p>The script pages through <code>cmr.earthdata.nasa.gov/search/collections.umm_json</code>
@@ -1063,24 +1063,46 @@ that dropped out of CMR, or a bucket whose credentials endpoint changed.
 This is meant to run on a schedule in CI so registry drift shows up as a PR
 rather than as a runtime failure for users.</p>
 <h2 id="cleaning-the-raw-data">Cleaning the raw data</h2>
-<p>A few things need handling before the swept data is usable:</p>
+<p><code>DirectDistributionInformation</code> is free-text metadata written per collection
+by each DAAC, and it shows. As of the 2026-08-18 sweep (9,846 collections,
+9,837 of them carrying the block), these are the cases that need handling:</p>
 <ul>
-<li><strong>Missing separators.</strong> Some <code>S3BucketAndObjectPrefixNames</code> entries are
-  missing the <code>/</code> between the bucket name and the object prefix, e.g.
-  <code>gesdisc-cumulus-prod-protectedAqua_AIRS_Level2</code> (the real bucket is
-  <code>gesdisc-cumulus-prod-protected</code>). NASA Cumulus bucket names consistently
-  end in <code>-protected</code> or <code>-public</code> (optionally with a numeric suffix, e.g.
-  CSDA's <code>-5047</code>), so the script recovers the split by locating that suffix
-  rather than the (missing) separator.</li>
-<li><strong>Placeholder buckets.</strong> A small number of collections (QA/test
-  collections) list a literal <code>TestBucket</code> value that isn't a real S3
-  bucket. These are dropped.</li>
-<li><strong>Endpoint conflicts.</strong> If the same bucket name shows up with two
-  different <code>S3CredentialsAPIEndpoint</code> values across collections, the
-  script keeps the first one seen and prints a warning — this hasn't been
-  observed in practice, but would indicate either a CMR metadata error or a
-  bucket rename in progress, and is worth a manual look either way.</li>
+<li><strong>Fully-qualified S3 URIs.</strong> The field is nominally <code>bucket/prefix</code>, but
+  ORNL, LPDAAC, GES DISC, ASDC, OB.DAAC, LAADS and CSDA all write
+  <code>s3://bucket/prefix</code> instead — 10,440 entries, a clear majority of the
+  total. The script strips any URI scheme before splitting. Skipping this
+  step collapses all seven DAACs into a single bogus <code>s3:</code> bucket and loses
+  every one of their real buckets.</li>
+<li><strong>Missing separators.</strong> One entry (GES DISC's <code>AIRXBCAL</code>) is missing the
+  <code>/</code> between the bucket name and the object prefix:
+  <code>s3://gesdisc-cumulus-prod-protectedAqua_AIRS_Level2/AIRXBCAL.005/</code>. NASA
+  Cumulus bucket names consistently end in <code>-protected</code> or <code>-public</code>
+  (optionally with a numeric suffix, e.g. CSDA's <code>-5047</code>), so the script
+  recovers the split by locating that suffix rather than the missing
+  separator. It only attempts this when the bucket half is <em>not</em> already a
+  syntactically valid S3 bucket name, so a legitimate name like
+  <code>csda-cumulus-prod-protected-5047</code> is never chopped apart at its numeric
+  suffix.</li>
+<li><strong>Unusable bucket names.</strong> Anything that still isn't a valid S3 bucket
+  name after the above (lowercase alphanumerics, dots and hyphens, 3-63
+  characters) is dropped with a warning. In practice this is the literal
+  <code>TestBucket</code> placeholder in one SCIOPS QA collection.</li>
+<li><strong>Non-HTTPS credentials endpoints.</strong> Two collections have junk in
+  <code>S3CredentialsAPIEndpoint</code>: a <code>www.testexample.com</code> placeholder (SCIOPS)
+  and an S3 URI pasted into the wrong field (LPCLOUD). Endpoints that aren't
+  <code>https://</code> URLs are dropped with a warning.</li>
+<li><strong>Endpoint conflicts.</strong> ASF publishes <code>asf-cumulus-prod-opera-products</code>
+  and <code>asf-cumulus-prod-opera-browse</code> under two hosts,
+  <code>cumulus.asf.alaska.edu</code> and <code>cumulus.asf.earthdatacloud.nasa.gov</code>. The
+  script keeps the most frequently published endpoint, breaking ties on the
+  endpoint string. Resolving this deterministically matters: picking the
+  first one seen would depend on CMR's result ordering, and the scheduled
+  <code>--check</code> job would flap between the two hosts from run to run.</li>
 </ul>
+<p>Two UAT/SIT buckets (<code>ghrcwuat-protected</code> and <code>ob-cumulus-sit-public</code>) are
+published in <em>production</em> CMR by GHRC and OB.DAAC. They're kept rather than
+filtered: each is paired with its own UAT/SIT credentials endpoint, so
+resolving one to the other is still correct.</p>
 <h2 id="feeding-the-mapping-into-daacpy">Feeding the mapping into <code>daac.py</code></h2>
 <p>The sweep's output isn't consumed automatically — merge new/changed rows
 from <code>bucket_registry.json</code> into
