@@ -335,4 +335,28 @@ def test_derived_s3_links_use_each_link_not_just_the_first():
         "s3://protected/coll/file_b.nc",
     ]
     # Each input link maps to a distinct S3 URL; the first is not duplicated.
+
+
+def test_derived_s3_links_do_not_assume_nasa_gov_hostname():
+    """ASF's HTTPS distribution host (sentinel1.asf.alaska.edu) doesn't end
+    in nasa.gov, so the S3 link derivation can't split on that literal.
+    """
+    granule = DataGranule(
+        {
+            "umm": {
+                "RelatedUrls": [
+                    {
+                        "URL": "https://sentinel1.asf.alaska.edu/asf-cumulus-prod-protected/coll/file_a.nc",
+                        "Type": "GET DATA",
+                    },
+                ],
+            },
+            "meta": {},
+        },
+        cloud_hosted=True,
+    )
+
+    s3_links = granule.data_links(in_region=True)
+
+    assert s3_links == ["s3://asf-cumulus-prod-protected/coll/file_a.nc"]
     assert len(set(s3_links)) == len(s3_links)

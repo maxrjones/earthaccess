@@ -22,7 +22,11 @@ from tinynetrc import Netrc
 from typing_extensions import deprecated
 
 from earthaccess_auth.daac import DAACS
-from earthaccess_auth.exceptions import LoginAttemptFailure, LoginStrategyUnavailable
+from earthaccess_auth.exceptions import (
+    LoginAttemptFailure,
+    LoginStrategyUnavailable,
+    S3CredentialsEndpointUnresolved,
+)
 from earthaccess_auth.system import PROD, System
 
 
@@ -203,8 +207,11 @@ class Auth:
         Returns:
             A dict with the temporary AWS S3 credentials (`accessKeyId`,
             `secretAccessKey`, `sessionToken`, `expiration`), or an empty
-            dict if not authenticated yet or the provider has no S3
-            credentials available.
+            dict if not authenticated yet.
+
+        Raises:
+            S3CredentialsEndpointUnresolved: If no `s3credentials` endpoint
+                could be resolved from `endpoint`, `daac`, or `provider`.
         """
         if not self.authenticated:
             logger.info("We need to authenticate with EDL first")
@@ -216,10 +223,16 @@ class Auth:
         )
 
         if not auth_url.startswith("https://"):
-            # This happens if the cloud provider doesn't list the S3 credentials or the DAAC
-            # does not have cloud collections yet
-            logger.info("Credentials for the cloud provider %s are not available", daac)
-            return {}
+            # This happens if daac/provider aren't in the DAAC registry, or
+            # the DAAC has no cloud collections and therefore no
+            # `s3credentials` URL.
+            msg = (
+                f"Could not resolve an s3credentials endpoint for "
+                f"daac={daac!r}, provider={provider!r}, endpoint={endpoint!r}. "
+                "Pass a known DAAC short name/provider code, or the "
+                "s3credentials URL directly via `endpoint`."
+            )
+            raise S3CredentialsEndpointUnresolved(msg)
 
         with self.get_session() as session, session.get(auth_url, timeout=15) as r:
             if r:

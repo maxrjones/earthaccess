@@ -8,7 +8,10 @@ import pytest
 import responses
 
 from earthaccess_auth import Auth
-from earthaccess_auth.exceptions import LoginAttemptFailure
+from earthaccess_auth.exceptions import (
+    LoginAttemptFailure,
+    S3CredentialsEndpointUnresolved,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -123,3 +126,14 @@ def test_default_user_agent():
 def test_user_agent_override():
     session = Auth(user_agent="earthaccess v9.9.9").get_session()
     assert session.headers["User-Agent"] == "earthaccess v9.9.9"
+
+
+def test_get_s3_credentials_raises_when_endpoint_unresolved():
+    """An unrecognized daac/provider (and no explicit endpoint) must raise,
+    not silently return {} and defer to a bare KeyError downstream.
+    """
+    auth = Auth()
+    auth.authenticated = True
+
+    with pytest.raises(S3CredentialsEndpointUnresolved):
+        auth.get_s3_credentials(daac="NOT_A_REAL_DAAC")

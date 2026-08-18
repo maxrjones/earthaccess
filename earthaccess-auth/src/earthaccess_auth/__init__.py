@@ -16,6 +16,7 @@ from earthaccess_auth.daac import DAACS
 from earthaccess_auth.exceptions import (
     LoginAttemptFailure,
     LoginStrategyUnavailable,
+    S3CredentialsEndpointUnresolved,
 )
 from earthaccess_auth.system import PROD, UAT, System
 
@@ -26,6 +27,7 @@ __all__ = [
     "Auth",
     "LoginAttemptFailure",
     "LoginStrategyUnavailable",
+    "S3CredentialsEndpointUnresolved",
     "SessionWithHeaderRedirection",
     "System",
     "login",

@@ -418,7 +418,7 @@ def download(  # noqa: PLR0913
     Raises:
         Exception: A file download failed.
     """
-    provider = _normalize_location(str(provider))
+    provider = _normalize_location(provider)
 
     # Separate `isinstance` checks enable the typechecker to resolve `granules` as
     # `list[DataGranule] | list[str]` instead of `list[DataGranule | str]`.

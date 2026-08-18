@@ -3,6 +3,7 @@ import uuid
 import warnings
 from functools import cache
 from typing import Any, ClassVar
+from urllib.parse import urlsplit
 
 import requests
 
@@ -438,7 +439,12 @@ class DataGranule(CustomDict):
             elif link.startswith("https://") and (
                 "cumulus" in link or "protected" in link
             ):
-                s3_links.append(f"s3://{link.split('nasa.gov/')[1]}")
+                # DAAC HTTPS distribution hosts mirror the bucket/prefix
+                # layout in their URL path, e.g.
+                # https://archive.podaac.earthdata.nasa.gov/podaac-ops-cumulus-protected/...
+                # or ASF's https://sentinel1.asf.alaska.edu/...; the bucket
+                # path is everything after the host, regardless of domain.
+                s3_links.append(f"s3://{urlsplit(link).path.lstrip('/')}")
         return s3_links
 
     def data_links(

@@ -18,3 +18,12 @@ class LoginAttemptFailure(Exception):  # noqa: N818
     invalid. Contrast with `LoginStrategyUnavailable`, which is raised when
     a strategy couldn't even be attempted (e.g. missing credentials).
     """
+
+
+class S3CredentialsEndpointUnresolved(Exception):  # noqa: N818
+    """Raised when no `s3credentials` endpoint could be found for a request.
+
+    This happens when the given `daac`/`provider` isn't in the DAAC
+    registry, or the DAAC has no cloud collections and therefore no
+    `s3credentials` URL.
+    """

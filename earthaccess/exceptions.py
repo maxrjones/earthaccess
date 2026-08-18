@@ -1,6 +1,7 @@
 from earthaccess_auth.exceptions import (
     LoginAttemptFailure,
     LoginStrategyUnavailable,
+    S3CredentialsEndpointUnresolved,
 )
 
 
@@ -33,5 +34,6 @@ __all__ = [
     "EulaNotAccepted",
     "LoginAttemptFailure",
     "LoginStrategyUnavailable",
+    "S3CredentialsEndpointUnresolved",
     "ServiceOutage",
 ]
