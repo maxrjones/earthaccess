@@ -873,12 +873,15 @@ credentials work at all.</p>
 <a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>    <span class="n">credential_provider</span><span class="o">=</span><span class="n">credential_provider</span><span class="p">,</span>
 <a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="p">)</span>
 <a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">obstore</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;daymet/Daymet_Daily_V4R1/data&quot;</span><span class="p">):</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span> <span class="n">obj</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">])</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">obstore</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;daymet/Daymet_Daily_V4R1/data&quot;</span><span class="p">):</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">:</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>        <span class="nb">print</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">],</span> <span class="n">obj</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">])</span>
 </code></pre></div>
-<p><a class="autorefs autorefs-external" href="https://developmentseed.org/obstore/latest/api/list/#obstore.list"><code>obstore.list()</code></a> returns a lazily-paginated stream of <code>ObjectMeta</code> dicts
-(<code>path</code>, <code>size</code>, <code>last_modified</code>, <code>e_tag</code>). Iterating it fetches pages as
-needed instead of loading the whole prefix into memory up front.</p>
+<p><a class="autorefs autorefs-external" href="https://developmentseed.org/obstore/latest/api/list/#obstore.list"><code>obstore.list()</code></a> returns a lazily-paginated stream: each
+iteration yields a chunk (a list, 50 items by default) of <code>ObjectMeta</code> dicts
+(<code>path</code>, <code>size</code>, <code>last_modified</code>, <code>e_tag</code>), not a single object, so a nested
+loop unpacks each chunk. Iterating fetches pages as needed instead of loading
+the whole prefix into memory up front.</p>
 <p>Already on <code>s3fs</code>? <code>auth.get_s3_credentials(daac=...)</code> returns a plain
 temporary AWS credential dict that <code>s3fs.S3FileSystem</code> (like anything else
 <code>boto3</code>-shaped) accepts directly — no separate adapter needed. See
