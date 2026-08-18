@@ -28,6 +28,11 @@
 
 ## Systems
 
+The Earthdata deployment to authenticate against, passed as
+[`login`][earthaccess_auth.login]'s `system` parameter. Defaults to `PROD`;
+pass `UAT` to test against NASA's pre-release environment before a change
+reaches production.
+
 ::: earthaccess_auth.System
     options:
       show_root_heading: true
