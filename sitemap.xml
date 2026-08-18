@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://earthaccess-dev.github.io/earthaccess/</loc>
+         <lastmod>2026-08-18</lastmod>
+    </url>
+    <url>
+         <loc>https://earthaccess-dev.github.io/earthaccess/explanation/choosing-a-backend/</loc>
+         <lastmod>2026-08-18</lastmod>
+    </url>
+    <url>
+         <loc>https://earthaccess-dev.github.io/earthaccess/howto/list-bucket-contents/</loc>
+         <lastmod>2026-08-18</lastmod>
+    </url>
+    <url>
+         <loc>https://earthaccess-dev.github.io/earthaccess/howto/magic-bytes/</loc>
+         <lastmod>2026-08-18</lastmod>
+    </url>
+    <url>
+         <loc>https://earthaccess-dev.github.io/earthaccess/howto/read-a-dataset/</loc>
+         <lastmod>2026-08-18</lastmod>
+    </url>
+    <url>
+         <loc>https://earthaccess-dev.github.io/earthaccess/howto/s3-credentials-and-bearer-token/</loc>
+         <lastmod>2026-08-18</lastmod>
+    </url>
+    <url>
+         <loc>https://earthaccess-dev.github.io/earthaccess/reference/api/</loc>
+         <lastmod>2026-08-18</lastmod>
+    </url>
+</urlset>
